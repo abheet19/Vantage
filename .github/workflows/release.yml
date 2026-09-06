@@ -1,5 +1,6 @@
-# release.yml — on every push to main: build the image and push it to GHCR, then deploy to Fly IF a
-# FLY_API_TOKEN secret is configured. ci.yml (the test gate) is untouched; this file only ships.
+# release.yml — after CI passes on main: build the image and push it to GHCR, then deploy to Fly IF a
+# FLY_API_TOKEN secret is configured. It runs on the *successful completion* of the CI workflow (never on
+# a red build) and ships the exact commit CI validated (`head_sha`). ci.yml (the test gate) is untouched.
 #
 # The Fly deploy is gated by a job output, not `if: secrets.FLY_API_TOKEN != ''` — the `secrets` context is
 # NOT available in a job/step `if:`. The `gate` job reads the secret into an env var (where it IS available),
@@ -9,22 +10,28 @@
 name: release
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ github.event.workflow_run.head_sha }}
   cancel-in-progress: false
 
 jobs:
   image:
     name: build and push ghcr.io/abheet19/vantage
+    # Only when CI itself went green — a failed test/build run must never publish or deploy.
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: docker/setup-buildx-action@v3
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -40,12 +47,13 @@ jobs:
           push: true
           tags: |
             ghcr.io/abheet19/vantage:latest
-            ghcr.io/abheet19/vantage:${{ github.sha }}
+            ghcr.io/abheet19/vantage:${{ github.event.workflow_run.head_sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   gate:
     name: decide whether Fly deploy is configured
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     outputs:
       has_fly: ${{ steps.check.outputs.has_fly }}
@@ -68,6 +76,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: superfly/flyctl-actions/setup-flyctl@v1.5
       - name: flyctl deploy
         env:

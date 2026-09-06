@@ -5,8 +5,13 @@
   "description": "Local-first product analytics with a structural LLM-to-SQL boundary.",
   "type": "module",
   "license": "MIT",
-  "engines": { "node": ">=22" },
-  "workspaces": ["apps/*", "packages/*"],
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "typecheck": "tsc -b packages/contracts apps/api && tsc -p packages/contracts/tsconfig.test.json && tsc -p apps/api/tsconfig.test.json && tsc -p apps/web/tsconfig.json && tsc -p apps/web/tsconfig.node.json && tsc -p tools/tsconfig.json",
     "build": "tsc -b packages/contracts apps/api",
@@ -30,13 +35,15 @@
     "fixture:load": "node --env-file-if-exists=.env apps/api/dist/fixture-load.js",
     "seed": "node --experimental-strip-types --disable-warning=ExperimentalWarning --env-file-if-exists=.env tools/seed.ts",
     "start:api": "node --env-file-if-exists=.env apps/api/dist/main.js",
-    "mcp:install": "node tools/mcp-install.mjs"
+    "mcp:install": "node tools/mcp-install.mjs",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.0",
     "@types/node": "^22.15.0",
     "@vitest/coverage-v8": "^4.0.0",
     "eslint": "^10.0.0",
+    "husky": "^9.1.7",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.69.0",
     "vitest": "^4.0.0"

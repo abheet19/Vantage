@@ -12,6 +12,7 @@
 // Reproducible: headless Chromium at a crisp 1600×1000 @2x, dark. It sets the project in localStorage
 // before load so the fixture is always the one queried. GIFs are attempted only if ffmpeg is found.
 
+/* global window, document, localStorage -- these appear only inside page.evaluate / addInitScript bodies, which run in the browser context, not Node. */
 import { chromium } from 'playwright';
 import { mkdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
