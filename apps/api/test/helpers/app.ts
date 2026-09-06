@@ -67,7 +67,14 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
   const app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false, logger: ['error'] });
   configureApp(app);
   try {
-    await app.init();
+    // listen(0), not just init(): supertest given a not-yet-listening server calls server.listen(0) itself,
+    // once per request, and closes it again after — so when the 50-parallel batch fires, 50 requests race the
+    // same ephemeral bind. On Linux (CI) that resets most of the sockets (ECONNRESET) and Promise.all rejects,
+    // so a batch that idempotent ingest had converged correctly (500 rows, 50 persons still hold) looked like a
+    // failure; Node on Windows tolerates the racing binds, which is why it passed locally. Binding an ephemeral
+    // port here (exactly as main.ts binds its real one) hands supertest an already-listening server, so every
+    // concurrent request reaches it. The boot self-test still runs inside listen() and rejects the same way.
+    await app.listen(0);
   } catch (err) {
     await app.close().catch(() => undefined);
     throw err;
