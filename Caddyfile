@@ -1,0 +1,32 @@
+# Caddyfile — the one public edge of the Vantage container.
+#
+# Caddy is PID 1 (docker-entrypoint.sh). It serves the built web dashboard (SPA, with history fallback)
+# and reverse-proxies the API surface to the NestJS API, which listens on loopback INSIDE the container
+# (VANTAGE_BIND=127.0.0.1 ⟨D4⟩ — unchanged). Only this port is published; the API's 4100 is never exposed.
+#
+# TLS is terminated upstream (Fly's [http_service] force_https, or the compose host), so Caddy speaks
+# plain HTTP on $PORT and its own auto-HTTPS and admin API are off.
+{
+	admin off
+	auto_https off
+}
+
+:{$PORT:8080} {
+	encode gzip
+
+	# The API surface discovered from the controllers: everything under /v1/* (projects, ingest, identify,
+	# funnel, retention, trend, paths, count, ask, asks, events/catalog) plus GET /health. These go to the
+	# loopback API; the shared read token (VANTAGE_QUERY_TOKEN), when set, is enforced by the API itself.
+	@api path /v1/* /health
+	handle @api {
+		reverse_proxy 127.0.0.1:{$VANTAGE_PORT:4100}
+	}
+
+	# Everything else is the single-page app: serve the file if it exists, else index.html so client-side
+	# routing (the hash router) and deep links resolve.
+	handle {
+		root * /app/apps/web/dist
+		try_files {path} /index.html
+		file_server
+	}
+}

@@ -8,11 +8,13 @@
  *
  * What it must never do: contain logic, or reach past the service to a port, a pool or a compiler.
  */
-import { Body, Controller, HttpCode, Inject, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { AskBody, type AskResponse } from '@vantage/contracts';
+import { QueryTokenGuard } from '../auth/query-token.guard.js';
 import { AskService } from './ask.service.js';
 
 @Controller('v1')
+@UseGuards(QueryTokenGuard)
 export class AskController {
   constructor(@Inject(AskService) private readonly ask: AskService) {}
 

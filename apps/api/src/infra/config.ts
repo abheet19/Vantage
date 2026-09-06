@@ -6,6 +6,10 @@
  * defaults to loopback ⟨D4⟩: exposing the API is a deliberate act, and `main.ts` logs a warning when
  * the bind address is anything else.
  *
+ * `VANTAGE_QUERY_TOKEN` is read here too: unset/empty ⇒ the query routes stay open ⟨D4⟩; set (≥ 16 chars)
+ * ⇒ the read routes require it as a Bearer (`QueryTokenGuard`). It is a single shared read token, not a
+ * per-project ingest key.
+ *
  * The LLM settings live here too: `VANTAGE_LLM` picks the adapter (`none` by default, so the boundary
  * demo needs no model), choosing `anthropic` without `VANTAGE_ANTHROPIC_API_KEY` fails at boot by name,
  * and `VANTAGE_OLLAMA_NUM_CTX` is the context window asked of a local model (a positive integer; the
@@ -53,6 +57,12 @@ export interface ApiConfig {
   port: number;
   migrationsDir: string;
   llm: LlmConfig;
+  /**
+   * The shared read token (`VANTAGE_QUERY_TOKEN`). `undefined` when unset or empty ⇒ the query routes stay
+   * open ⟨D4⟩ (today's behaviour); a string ⇒ every read route requires `Authorization: Bearer <it>`. It is
+   * a single shared read token for the instance, NOT a per-project ingest key.
+   */
+  queryToken: string | undefined;
 }
 
 /** `apps/api/migrations`, resolved from this file so it is right whether run from `src` (vitest) or `dist` (node). */
@@ -80,6 +90,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
   if (!isAdapterName(adapter)) throw new Error(`VANTAGE_LLM must be one of ${LLM_ADAPTERS.join(', ')}, got "${adapter}"`);
   const anthropicApiKey = env['VANTAGE_ANTHROPIC_API_KEY'] || undefined;
   if (adapter === 'anthropic' && !anthropicApiKey) throw new Error('VANTAGE_LLM=anthropic needs VANTAGE_ANTHROPIC_API_KEY (set it in .env, which is git-ignored)');
+  // Empty ⇒ undefined ⇒ the query routes stay open ⟨D4⟩. When set it must be long enough to be a real
+  // secret (a short one gives a false sense of protection); this is the only validation — the token is
+  // otherwise opaque and never logged.
+  const queryTokenRaw = env['VANTAGE_QUERY_TOKEN'];
+  const queryToken = queryTokenRaw && queryTokenRaw.length > 0 ? queryTokenRaw : undefined;
+  if (queryToken !== undefined && queryToken.length < 16) {
+    throw new Error('VANTAGE_QUERY_TOKEN must be at least 16 characters when set (leave it unset to keep the query routes open, loopback-only)');
+  }
   return {
     rwUrl: env['VANTAGE_DATABASE_URL_RW'] as string,
     roUrl: env['VANTAGE_DATABASE_URL_RO'] as string,
@@ -95,6 +113,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
       anthropicModel: env['VANTAGE_ANTHROPIC_MODEL'] || ANTHROPIC_DEFAULT_MODEL,
       anthropicApiKey,
     },
+    queryToken,
   };
 }
 

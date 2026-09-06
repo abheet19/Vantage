@@ -1,3 +1,7 @@
 # Migrations are checksummed by the runner; LF everywhere keeps the checksum identical on Windows and Linux.
 * text=auto
 *.sql text eol=lf
+# Shell scripts run inside Linux containers: LF only, or the shebang / `set -eu` break on a CRLF checkout.
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
+Caddyfile text eol=lf

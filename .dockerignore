@@ -1,0 +1,47 @@
+# .dockerignore — keep the build context small and the image reproducible.
+#
+# Everything the image needs is either a committed source file or produced by the build stage
+# (npm ci → npm run build → npm run web:build). Host build output and secrets never enter the context,
+# so a `docker build` on a dirty working tree still produces the same image as CI.
+
+# dependencies and build output — reinstalled/rebuilt inside the image
+node_modules
+**/node_modules
+dist
+**/dist
+*.tsbuildinfo
+**/*.tsbuildinfo
+
+# secrets — never
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.seed-state.json
+
+# test / coverage / tooling artefacts
+coverage
+coverage*
+**/coverage
+test-results
+**/test-results
+playwright-report
+**/playwright-report
+.playwright
+bench-out
+
+# vcs and editor noise
+.git
+.gitignore
+.github
+.vscode
+.DS_Store
+Thumbs.db
+
+# docs and prototype are not needed at build/runtime
+docs
+brand
+prototype
+*.md
+!README.md

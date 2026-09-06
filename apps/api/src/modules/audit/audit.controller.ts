@@ -8,11 +8,13 @@
  *
  * What it must never do: filter, redact or reshape rows — the log is shown as written.
  */
-import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
 import { AsksQuery, type AskRow } from '@vantage/contracts';
+import { QueryTokenGuard } from '../auth/query-token.guard.js';
 import { AuditService } from './audit.service.js';
 
 @Controller('v1')
+@UseGuards(QueryTokenGuard)
 export class AuditController {
   constructor(@Inject(AuditService) private readonly audit: AuditService) {}
 

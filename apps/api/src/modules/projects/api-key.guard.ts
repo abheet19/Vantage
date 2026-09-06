@@ -16,7 +16,8 @@ import { ProjectsService, type ProjectRef } from './projects.service.js';
 
 export type RequestWithProject = Request & { project?: ProjectRef };
 
-const BEARER = /^Bearer\s+(\S+)$/i;
+/** `Authorization: Bearer <token>`; exported so `QueryTokenGuard` parses the header exactly as ingest does. */
+export const BEARER = /^Bearer\s+(\S+)$/i;
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {

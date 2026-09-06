@@ -7,11 +7,13 @@
  *
  * What it must never do: accept a body, or expose anything the service did not compute.
  */
-import { Controller, Get, Inject, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Query, UseGuards } from '@nestjs/common';
 import { CatalogQuery, type EventCatalog } from '@vantage/contracts';
+import { QueryTokenGuard } from '../auth/query-token.guard.js';
 import { CatalogService } from './catalog.service.js';
 
 @Controller('v1/events')
+@UseGuards(QueryTokenGuard)
 export class EventsController {
   constructor(@Inject(CatalogService) private readonly catalog: CatalogService) {}
 

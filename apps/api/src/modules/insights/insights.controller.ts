@@ -5,17 +5,20 @@
  * `retention` spec posted to `/v1/funnel` fails at `kind` with 422 `INVALID_SPEC` — the path and the
  * spec must agree, and the error names the field. HTTP 200 even for `timed_out` or `empty`: the status
  * inside the result IS the answer (LLD §3.4), and a 4xx/5xx would let a client confuse "the database
- * refused" with "the request was malformed". No authentication: the API binds to loopback ⟨D4⟩ and the
- * query side has no users (design A4).
+ * refused" with "the request was malformed". Authentication is env-flagged: the API binds to loopback
+ * ⟨D4⟩ and the query side has no users (design A4), so `QueryTokenGuard` is open unless
+ * `VANTAGE_QUERY_TOKEN` is set — set (for a hosted URL) it requires that shared read token as a Bearer.
  *
  * What it must never do: accept a `QuerySpec` union here (that would let the path and the kind
  * disagree), or contain logic — validation is the schema's, everything else is the service's.
  */
-import { Body, Controller, HttpCode, Inject, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Post, UseGuards } from '@nestjs/common';
 import { CountSpec, type CountResult, FunnelSpec, type FunnelResult, PathsSpec, type PathsResult, RetentionSpec, type RetentionResult, TrendSpec, type TrendResult } from '@vantage/contracts';
+import { QueryTokenGuard } from '../auth/query-token.guard.js';
 import { InsightsService } from './insights.service.js';
 
 @Controller('v1')
+@UseGuards(QueryTokenGuard)
 export class InsightsController {
   constructor(@Inject(InsightsService) private readonly insights: InsightsService) {}
 

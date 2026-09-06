@@ -18,3 +18,10 @@ export const PG_RO = 'PG_RO';
 export const CLOCK = 'CLOCK';
 /** The DatabaseModule's own options object (URLs and migrations directory). */
 export const DATABASE_OPTIONS = 'DATABASE_OPTIONS';
+/**
+ * The shared read token (`VANTAGE_QUERY_TOKEN`), or `undefined` when unset. When undefined the query
+ * routes stay open ⟨D4⟩ — today's exact behaviour; when a string, `QueryTokenGuard` requires it as a
+ * Bearer on the read routes. It is a single shared read token for the whole instance, NOT a project key
+ * (that is the per-project ingest key `ApiKeyGuard` checks) — the two mechanisms are independent.
+ */
+export const QUERY_TOKEN = 'QUERY_TOKEN';

@@ -1,0 +1,64 @@
+# docker-compose.yml — the one-command local / self-host path: `docker compose up`.
+#
+# `db` is postgres:17 with a named volume for its data. On first boot (empty volume) it runs
+# tools/docker-initdb.sh, which creates the three roles (owner/app/reader) and the `vantage` database from
+# tools/db-setup.sql. `app` is the image this repo builds: the API applies migrations + grants at boot
+# (VANTAGE_DATABASE_URL_OWNER is set), then Caddy serves the dashboard and proxies the API. Only Caddy's
+# port (8080) is published; the API's loopback 4100 is not.
+#
+# The passwords and the query token below are DEV defaults so a fresh clone comes up with one command;
+# override them (a .env beside this file, or the shell environment) for anything real. VANTAGE_QUERY_TOKEN
+# is set here, so the read routes require it — see docs/DEPLOY.md for the curl-with-bearer example.
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_superuser_dev_pw}
+      # Consumed by tools/docker-initdb.sh to set each Vantage role's password on first boot.
+      VANTAGE_DB_NAME: vantage
+      VANTAGE_OWNER_PASSWORD: ${VANTAGE_OWNER_PASSWORD:-owner_dev_pw}
+      VANTAGE_APP_PASSWORD: ${VANTAGE_APP_PASSWORD:-app_dev_pw}
+      VANTAGE_READER_PASSWORD: ${VANTAGE_READER_PASSWORD:-reader_dev_pw}
+    volumes:
+      - vantage-pgdata:/var/lib/postgresql/data
+      - ./tools/db-setup.sql:/vantage/db-setup.sql:ro
+      - ./tools/docker-initdb.sh:/docker-entrypoint-initdb.d/10-vantage.sh:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d vantage']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # RW = vantage_app, RO = vantage_reader, OWNER = vantage_owner (owner set ⇒ migrations apply at boot).
+      VANTAGE_DATABASE_URL_RW: postgres://vantage_app:${VANTAGE_APP_PASSWORD:-app_dev_pw}@db:5432/vantage
+      VANTAGE_DATABASE_URL_RO: postgres://vantage_reader:${VANTAGE_READER_PASSWORD:-reader_dev_pw}@db:5432/vantage
+      VANTAGE_DATABASE_URL_OWNER: postgres://vantage_owner:${VANTAGE_OWNER_PASSWORD:-owner_dev_pw}@db:5432/vantage
+      # The shared READ token: with this set, funnel/retention/trend/paths/count, ask, asks and
+      # events/catalog require `Authorization: Bearer <this>`. Ingest keeps its own per-project key.
+      VANTAGE_QUERY_TOKEN: ${VANTAGE_QUERY_TOKEN:-local-dev-query-token-change-me}
+      # The API listens on loopback inside the container (unchanged ⟨D4⟩); Caddy is the public edge.
+      VANTAGE_BIND: 127.0.0.1
+      VANTAGE_PORT: '4100'
+      PORT: '8080'
+      VANTAGE_LLM: none
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test: ['CMD-SHELL', 'node -e "require(''http'').get({host:''127.0.0.1'',port:8080,path:''/health'',timeout:2000},r=>process.exit(r.statusCode===200?0:1)).on(''error'',()=>process.exit(1))"']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+volumes:
+  vantage-pgdata:

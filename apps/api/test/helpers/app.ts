@@ -54,12 +54,14 @@ export interface TestAppOptions {
   llm?: LlmPort;
   /** The name the audit rows carry for a scripted model; `scripted` unless the test says otherwise. */
   adapter?: string;
+  /** `VANTAGE_QUERY_TOKEN`: unset ⇒ the read routes stay open ⟨D4⟩ (the default); set ⇒ they require it as a Bearer. */
+  queryToken?: string;
 }
 
 /** Builds and initialises the app; rejects (and leaks nothing) when the boot self-test refuses. */
 export async function createTestApp(options: TestAppOptions = {}): Promise<TestApp> {
   const clock = options.clock ?? new FixedClock(new Date('2026-09-02T00:00:00Z'));
-  let builder = Test.createTestingModule({ imports: [AppModule.forRoot(dbOptions(options.db))] }).overrideProvider(CLOCK).useValue(clock);
+  let builder = Test.createTestingModule({ imports: [AppModule.forRoot(dbOptions(options.db), undefined, options.queryToken)] }).overrideProvider(CLOCK).useValue(clock);
   if (options.llm) builder = builder.overrideProvider(LLM_PORT).useValue(options.llm).overrideProvider(LLM_ADAPTER).useValue(options.adapter ?? 'scripted');
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false, logger: ['error'] });
@@ -91,4 +93,9 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
 
 export function bearer(project: TestProject): Record<string, string> {
   return { Authorization: `Bearer ${project.api_key}` };
+}
+
+/** The shared read token as a Bearer header, for the query-token gate (distinct from a project's ingest key). */
+export function queryBearer(token: string): Record<string, string> {
+  return { Authorization: `Bearer ${token}` };
 }

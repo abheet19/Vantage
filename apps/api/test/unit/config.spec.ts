@@ -55,4 +55,14 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ ...base, VANTAGE_PORT: 'eighty' })).toThrow(/VANTAGE_PORT/);
     expect(() => loadConfig({ ...base, VANTAGE_PORT: '70000' })).toThrow(/VANTAGE_PORT/);
   });
+
+  it('defaults the query token to undefined (routes stay open ⟨D4⟩) and treats an empty value as unset', () => {
+    expect(loadConfig(base).queryToken).toBeUndefined();
+    expect(loadConfig({ ...base, VANTAGE_QUERY_TOKEN: '' }).queryToken).toBeUndefined();
+  });
+
+  it('reads a query token of at least 16 characters, and rejects a short one by name', () => {
+    expect(loadConfig({ ...base, VANTAGE_QUERY_TOKEN: 'a-real-32-char-shared-read-token' }).queryToken).toBe('a-real-32-char-shared-read-token');
+    expect(() => loadConfig({ ...base, VANTAGE_QUERY_TOKEN: 'short' })).toThrow(/VANTAGE_QUERY_TOKEN must be at least 16 characters/);
+  });
 });

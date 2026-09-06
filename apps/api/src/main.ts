@@ -21,16 +21,17 @@ async function main(): Promise<void> {
   const logger = new Logger('vantage');
   const config = loadConfig();
   const app = await NestFactory.create<NestExpressApplication>(
-    AppModule.forRoot({ rwUrl: config.rwUrl, roUrl: config.roUrl, ownerUrl: config.ownerUrl, migrationRole: config.migrationRole, migrationsDir: config.migrationsDir }, config.llm),
+    AppModule.forRoot({ rwUrl: config.rwUrl, roUrl: config.roUrl, ownerUrl: config.ownerUrl, migrationRole: config.migrationRole, migrationsDir: config.migrationsDir }, config.llm, config.queryToken),
     { bodyParser: false },
   );
   configureApp(app);
   app.enableShutdownHooks();
   await app.listen(config.port, config.bind);
-  if (config.bind !== '127.0.0.1' && config.bind !== 'localhost' && config.bind !== '::1') {
-    logger.warn(`VANTAGE_BIND=${config.bind}: the query routes are unauthenticated by design; only ingest requires an API key. Make sure this is deliberate.`);
+  const loopback = config.bind === '127.0.0.1' || config.bind === 'localhost' || config.bind === '::1';
+  if (!loopback && !config.queryToken) {
+    logger.warn(`VANTAGE_BIND=${config.bind} with no VANTAGE_QUERY_TOKEN: the query routes are unauthenticated; only ingest requires an API key. Set VANTAGE_QUERY_TOKEN to require a shared read token, or keep the bind on loopback. Make sure this is deliberate.`);
   }
-  logger.log(`listening on http://${config.bind}:${config.port}; ask adapter: ${config.llm.adapter}`);
+  logger.log(`listening on http://${config.bind}:${config.port}; ask adapter: ${config.llm.adapter}; read routes: ${config.queryToken ? 'require VANTAGE_QUERY_TOKEN' : 'open (loopback by design ⟨D4⟩)'}`);
 }
 
 main().catch((err: unknown) => {
