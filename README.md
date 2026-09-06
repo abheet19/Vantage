@@ -34,7 +34,17 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 
 <br>
 
+### ▶ &nbsp;[**Live demo → vantage-abheet.fly.dev**](https://vantage-abheet.fly.dev)
+
+<sub><b>Try it:</b> open the app and click the example question — <i>"Of the people who signed up in August, how many created a project within a week, and how many of those invited someone?"</i> — then read the answer top to bottom: <b>spec → SQL → number</b>.</sub>
+
+<br>
+
 </div>
+
+[![The SQL · what actually ran panel: the role vantage_reader · READ ONLY · timeout 5 s badge over the parameterised SELECT the question compiled to](docs/media/vantage-ask.png)](https://vantage-abheet.fly.dev)
+
+<div align="center"><sub>The security money-shot: the model fills a typed spec (violet), the compiler turns it into a <b>parameterised</b> <code>SELECT</code> (<code>$1…$7</code>, no interpolation), and it runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>. A real capture of the deployed app — reproduce it with <code>node tools/capture-hero.mjs</code>.</sub></div>
 
 > [!NOTE]
 > **Where this project is.** Design and low-level design are approved and the build is **feature-complete**
@@ -118,6 +128,10 @@ sequenceDiagram
     A-->>U: funnel bars + the exact SQL + ● Complete · 0.41 s · data until 09:12
   end
 ```
+
+[![The funnel the August question produced: signup 13 → create_project 6 → invite_teammate 3, each bar with its share of the previous step and of the first](docs/media/vantage-funnel.png)](https://vantage-abheet.fly.dev)
+
+<div align="center"><sub>The number the question above resolves to — <b>signup 13 → create_project 6 → invite_teammate 3</b> in a 7-day window — every bar carrying its share of the previous step and of the first. These are the hand-checked fixture's numbers (<a href="apps/api/fixtures/august.expected.md">august.expected.md</a>: <i>"7 days: 13 → 6 → 3"</i>); the 14-day window is 13 → 8 → 4.</sub></div>
 
 ## ◈ Three things that make it engineering
 
