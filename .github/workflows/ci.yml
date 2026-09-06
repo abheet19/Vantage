@@ -32,7 +32,7 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -40,7 +40,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      VANTAGE_TEST_DB: postgres://postgres:postgres@127.0.0.1:5432/postgres
+      VANTAGE_TEST_DB: postgres://postgres@127.0.0.1:5432/postgres
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -59,7 +59,7 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -67,7 +67,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      VANTAGE_TEST_DB: postgres://postgres:postgres@127.0.0.1:5432/postgres
+      VANTAGE_TEST_DB: postgres://postgres@127.0.0.1:5432/postgres
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
