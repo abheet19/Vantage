@@ -1,0 +1,39 @@
+/**
+ * main.ts — the HTTP entrypoint: read config, build the app, refuse or listen.
+ *
+ * Why it exists: `node --env-file-if-exists=.env apps/api/dist/main.js` is the whole deployment. It
+ * binds to `VANTAGE_BIND` (loopback by default ⟨D4⟩) and logs a warning when that is anything else,
+ * because exposing an unauthenticated query surface must be a visible decision. A failed boot
+ * (missing env, unreachable database, self-test refusal) prints the reason and exits 1 — the process
+ * never half-runs.
+ *
+ * What it must never do: contain logic that tests cannot reach; everything but `listen` lives in
+ * `app.ts`.
+ */
+import { Logger } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import 'reflect-metadata';
+import { AppModule, configureApp } from './app.js';
+import { loadConfig } from './infra/config.js';
+
+async function main(): Promise<void> {
+  const logger = new Logger('vantage');
+  const config = loadConfig();
+  const app = await NestFactory.create<NestExpressApplication>(
+    AppModule.forRoot({ rwUrl: config.rwUrl, roUrl: config.roUrl, ownerUrl: config.ownerUrl, migrationRole: config.migrationRole, migrationsDir: config.migrationsDir }, config.llm),
+    { bodyParser: false },
+  );
+  configureApp(app);
+  app.enableShutdownHooks();
+  await app.listen(config.port, config.bind);
+  if (config.bind !== '127.0.0.1' && config.bind !== 'localhost' && config.bind !== '::1') {
+    logger.warn(`VANTAGE_BIND=${config.bind}: the query routes are unauthenticated by design; only ingest requires an API key. Make sure this is deliberate.`);
+  }
+  logger.log(`listening on http://${config.bind}:${config.port}; ask adapter: ${config.llm.adapter}`);
+}
+
+main().catch((err: unknown) => {
+  console.error(`vantage api refused to start: ${err instanceof Error ? err.message : String(err)}`);
+  process.exit(1);
+});

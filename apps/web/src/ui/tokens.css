@@ -1,0 +1,81 @@
+/* tokens.css — Observatory-glass design tokens.
+   Verbatim from 03-UI.md §2.2 (dark-first) and docs/prototype/vantage.html §1, the approved Gate 1
+   surface. The block is copied, not re-derived: the palette is OKLCH and any hand-editing would drift
+   the surface off its approved values. The theme triad is the one 03-UI mandates — bare :root is dark,
+   :root[data-theme="light"] is the manual light override, and the media block is system-light for anyone
+   who has not chosen. The "prototype-only derived tokens" are the ones the ported component CSS
+   references (glows, diff bands, the heat-ink used as button-on text); each is built from the tokens
+   above it, so nothing here is a new colour. */
+:root {
+  --bg:       oklch(13% 0.02 275);      /* indigo-black */
+  --surface:  oklch(18% 0.018 275);
+  --raised:   oklch(23% 0.016 275);
+  --line:     oklch(30% 0.016 275);
+  --ink:      oklch(95% 0.006 90);
+  --ink-2:    oklch(74% 0.01 275);
+  --ink-3:    oklch(58% 0.012 275);
+
+  --accent:   oklch(82% 0.13 85);       /* warm amber — the "ask" and the executed SQL */
+  --accent-2: oklch(72% 0.14 300);      /* violet — the spec (structure) */
+  --ok:       oklch(76% 0.15 150);
+  --warn:     oklch(80% 0.15 75);
+  --bad:      oklch(70% 0.19 25);
+  --info:     oklch(76% 0.12 240);
+
+  /* categorical (6) — equal L/C, for breakdowns and funnel steps */
+  --c1: oklch(75% 0.14 85);  --c2: oklch(72% 0.14 300); --c3: oklch(74% 0.13 200);
+  --c4: oklch(74% 0.14 150); --c5: oklch(72% 0.15 25);  --c6: oklch(74% 0.12 250);
+  /* sequential (retention heatmap) — one hue, lightness ramp; global scale, never per row */
+  --s0: oklch(20% 0.02 275); --s1: oklch(30% 0.06 275); --s2: oklch(42% 0.10 275);
+  --s3: oklch(55% 0.13 275); --s4: oklch(68% 0.14 275); --s5: oklch(82% 0.13 275);
+
+  --gl-fill:  oklch(20% 0.02 275 / .55); --gl-edge: oklch(100% 0 0 / .12); --gl-spec: oklch(100% 0 0 / .30);
+  --gl-blur:  blur(14px) saturate(1.4);
+  --gl-shadow: inset 0 1px 0 var(--gl-spec), 0 10px 30px -12px oklch(0% 0 0 / .6);
+
+  --font-ui:   "Geist", "Inter", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;   /* SQL, spec, numbers */
+  --fs-0: clamp(.78rem,.76rem+.1vw,.85rem); --fs-1: clamp(.9rem,.86rem+.2vw,1rem); --fs-2: clamp(1.1rem,1rem+.4vw,1.3rem);
+  --fs-kpi: clamp(1.8rem,1.4rem+1.2vw,2.6rem);
+  --r-1: 8px; --r-2: 12px; --r-3: 16px; --t-fast: 120ms; --t-base: 220ms; --t-slow: 400ms; --ease: cubic-bezier(.2,.8,.2,1);
+
+  /* prototype-only derived tokens (all built from the above) */
+  --glow-1: oklch(82% 0.13 85 / .10);   /* accent ground glow */
+  --glow-2: oklch(72% 0.14 300 / .12);  /* violet ground glow */
+  --heat-ink-dark: oklch(15% 0.02 275); /* text on bright cells / on the amber "on" state */
+  --diff-add: oklch(76% 0.15 150 / .18);
+  --diff-del: oklch(70% 0.19 25 / .16);
+  --shadow-1: 0 1px 0 oklch(100% 0 0 / .04) inset, 0 8px 24px -16px oklch(0% 0 0 / .7);
+  color-scheme: dark;
+}
+:root[data-theme="light"] { --bg: oklch(97% 0.008 85); --surface: oklch(99.5% 0.003 85); --raised: oklch(96% 0.008 85);
+  --line: oklch(88% 0.01 85); --ink: oklch(20% 0.02 275); --ink-2: oklch(42% 0.015 275); --ink-3: oklch(58% 0.015 275);
+  --accent: oklch(62% 0.14 75); --accent-2: oklch(50% 0.16 300);
+  --gl-fill: oklch(100% 0 0 / .6); --gl-edge: oklch(20% 0.02 275 / .10); --gl-spec: oklch(100% 0 0 / .9);
+  --s0: oklch(96% 0.01 275); --s1: oklch(88% 0.05 275); --s2: oklch(78% 0.09 275); --s3: oklch(66% 0.13 275); --s4: oklch(55% 0.15 275); --s5: oklch(45% 0.16 275);
+  --ok: oklch(52% 0.15 150); --warn: oklch(60% 0.15 75); --bad: oklch(55% 0.19 25); --info: oklch(52% 0.12 240);
+  --c1: oklch(62% 0.14 85); --c2: oklch(52% 0.16 300); --c3: oklch(55% 0.13 200); --c4: oklch(55% 0.14 150); --c5: oklch(55% 0.15 25); --c6: oklch(55% 0.12 250);
+  --glow-1: oklch(62% 0.14 75 / .14); --glow-2: oklch(50% 0.16 300 / .10);
+  --heat-ink-dark: oklch(15% 0.02 275);
+  --gl-shadow: inset 0 1px 0 var(--gl-spec), 0 10px 30px -12px oklch(0% 0 0 / .18);
+  --shadow-1: 0 8px 24px -16px oklch(0% 0 0 / .25);
+  color-scheme: light; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: oklch(97% 0.008 85); --surface: oklch(99.5% 0.003 85); --raised: oklch(96% 0.008 85);
+  --line: oklch(88% 0.01 85); --ink: oklch(20% 0.02 275); --ink-2: oklch(42% 0.015 275); --ink-3: oklch(58% 0.015 275);
+  --accent: oklch(62% 0.14 75); --accent-2: oklch(50% 0.16 300);
+  --gl-fill: oklch(100% 0 0 / .6); --gl-edge: oklch(20% 0.02 275 / .10); --gl-spec: oklch(100% 0 0 / .9);
+  --s0: oklch(96% 0.01 275); --s1: oklch(88% 0.05 275); --s2: oklch(78% 0.09 275); --s3: oklch(66% 0.13 275); --s4: oklch(55% 0.15 275); --s5: oklch(45% 0.16 275);
+  --ok: oklch(52% 0.15 150); --warn: oklch(60% 0.15 75); --bad: oklch(55% 0.19 25); --info: oklch(52% 0.12 240);
+  --c1: oklch(62% 0.14 85); --c2: oklch(52% 0.16 300); --c3: oklch(55% 0.13 200); --c4: oklch(55% 0.14 150); --c5: oklch(55% 0.15 25); --c6: oklch(55% 0.12 250);
+  --glow-1: oklch(62% 0.14 75 / .14); --glow-2: oklch(50% 0.16 300 / .10);
+  --heat-ink-dark: oklch(15% 0.02 275);
+  --gl-shadow: inset 0 1px 0 var(--gl-spec), 0 10px 30px -12px oklch(0% 0 0 / .18);
+  --shadow-1: 0 8px 24px -16px oklch(0% 0 0 / .25);
+  color-scheme: light; } }
+
+/* a11y fallbacks (03-UI §2.2): reduced transparency swaps glass for the raised surface; the manual
+   toggle sets data-flat="1" for the same effect. Reduced motion kills every animation and transition. */
+@supports not (backdrop-filter: blur(1px)) { .glass { background: var(--raised) } }
+@media (prefers-reduced-transparency: reduce) { .glass { backdrop-filter: none; background: var(--raised) } }
+:root[data-flat="1"] .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--raised); }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: 0ms !important } }

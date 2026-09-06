@@ -1,0 +1,30 @@
+{
+  // The SPA sources. Bundler resolution (Vite owns the graph), DOM libs, React JSX. Strictness mirrors
+  // tsconfig.base.json — the web is held to the same bar as the API, minus the Node-only module settings.
+  // `@vantage/contracts` resolves through the workspace symlink to its built types, so `npm run typecheck`
+  // builds contracts before this project.
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "types": [],
+    "useDefineForClassFields": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "test", "vite-env.d.ts"]
+}

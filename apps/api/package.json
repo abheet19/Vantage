@@ -1,0 +1,32 @@
+{
+  "name": "@vantage/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Vantage HTTP API: projects, ingest, identity, insights, ask (the LLM boundary), audit, health. NestJS 12.",
+  "type": "module",
+  "main": "./dist/main.js",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@nestjs/common": "^12.0.1",
+    "@nestjs/core": "^12.0.1",
+    "@nestjs/platform-express": "^12.0.1",
+    "@vantage/contracts": "0.1.0",
+    "express": "^5.2.0",
+    "pg": "^8.16.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "uuid": "^13.0.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^12.0.1",
+    "@standard-schema/spec": "^1.1.0",
+    "@types/express": "^5.0.0",
+    "@types/pg": "^8.15.0",
+    "@types/supertest": "^6.0.3",
+    "embedded-postgres": "17.10.0-beta.17",
+    "fast-check": "^4.0.0",
+    "supertest": "^7.1.0"
+  }
+}

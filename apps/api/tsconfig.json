@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "paths": { "@vantage/contracts": ["../../packages/contracts/src/index.ts"] }
+  },
+  "references": [{ "path": "../../packages/contracts" }],
+  "include": ["src/**/*.ts"]
+}

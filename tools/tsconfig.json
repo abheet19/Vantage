@@ -1,0 +1,11 @@
+{
+  "//": "Typechecks the TypeScript tools (currently tools/seed.ts, run by node --experimental-strip-types). They import the compiled API from apps/api/dist, so the API must be built first — the typecheck script chains this after `tsc -b apps/api`. No emit: node strips the types at run time.",
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["seed.ts"]
+}

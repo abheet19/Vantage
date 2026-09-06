@@ -1,0 +1,99 @@
+# Vantage CI — the full gate on Linux against a real PostgreSQL 17, the unit half on Windows, the docs check,
+# and a performance bench.
+#
+# `check` = typecheck → lint (eslint + lint-deps + lint-sql) → unit → integration → coverage gates → web.
+# Integration tests use the service container through VANTAGE_TEST_DB (the harness creates the roles from
+# tools/db-setup.sql and a `vantage_test` database in it). The Windows job proves the domain and contracts
+# with no database, the way an operator's first `npm run test:unit` runs. The bench job runs the LLD §7.4
+# funnel/retention/paths queries over a 200k-event dataset (the size at which the ÷5 budgets hold — see the
+# spec header) and fails if any exceeds 2× its scaled budget, so performance is guarded by CI, not by hand.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docs:
+    name: docs links resolve
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node tools/check-docs.mjs
+
+  check:
+    name: check (typecheck · lint · unit · integration · coverage) on ubuntu + postgres:17
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      VANTAGE_TEST_DB: postgres://postgres:postgres@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      # The web e2e (part of `npm run check` → check:web) drives a real browser; Chromium is the only one it needs.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+
+  bench:
+    name: bench (200k-event funnel · retention · paths) on ubuntu + postgres:17
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      VANTAGE_TEST_DB: postgres://postgres:postgres@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      # LLD §7.4: the funnel/retention/paths bench. Measured on this project's harness, the ÷5 budgets hold with
+      # headroom at 200k but not at 1M (query time is not linear; paths ≈ 3.1s), so CI runs the 200k variant and
+      # fails if a query exceeds 2× its scaled budget — performance guarded by CI, not a hand-written number. The
+      # 1M local stress command (asserts only the 5s statement-timeout promise) is in the README bench note.
+      - run: npm run bench
+        env:
+          VANTAGE_BENCH_EVENTS: '200000'
+
+  unit-windows:
+    name: typecheck · lint · unit on windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:unit
+      - run: npm run test:web

@@ -1,0 +1,137 @@
+{
+  "$comment": "LLD §7.2 hand-computed fixture. Project tz Asia/Kolkata (+05:30). Loaded through the REAL ingest endpoint by test/fixture/load.ts, one step at a time, with the server clock pinned to each step's server_ts. Every boundary row is named in august.expected.md. P14's 1 000 view_pricing events are described by one `generate` step (expanded by the loader) so the reviewable part of this file stays small.",
+  "project": { "name": "August fixture", "timezone": "Asia/Kolkata" },
+  "steps": [
+    {
+      "kind": "batch",
+      "label": "P01–P08: the funnel boundary persons",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "events": [
+        { "distinct_id": "p01", "event": "signup",          "timestamp": "2026-08-03T04:00:00Z", "insert_id": "p01-signup", "properties": { "plan": "free" } },
+        { "distinct_id": "p01", "event": "create_project",  "timestamp": "2026-08-03T05:00:00Z", "insert_id": "p01-create" },
+        { "distinct_id": "p01", "event": "invite_teammate", "timestamp": "2026-08-04T06:00:00Z", "insert_id": "p01-invite" },
+        { "distinct_id": "p01", "event": "view_pricing",    "timestamp": "2026-08-04T06:30:00Z", "insert_id": "p01-vp-1" },
+        { "distinct_id": "p01", "event": "view_pricing",    "timestamp": "2026-08-05T07:00:00Z", "insert_id": "p01-vp-2" },
+        { "distinct_id": "p01", "event": "view_pricing",    "timestamp": "2025-06-01T10:00:00Z", "insert_id": "p01-old" },
+
+        { "distinct_id": "p02", "event": "signup",          "timestamp": "2026-08-03T09:00:00Z", "properties": { "plan": "team" } },
+        { "distinct_id": "p02", "event": "view_pricing",    "timestamp": "2026-08-04T09:30:00Z" },
+        { "distinct_id": "p02", "event": "create_project",  "timestamp": "2026-08-12T09:00:00Z" },
+        { "distinct_id": "p02", "event": "invite_teammate", "timestamp": "2026-08-13T10:00:00Z" },
+
+        { "distinct_id": "p03", "event": "signup",          "timestamp": "2026-08-05T10:00:00Z", "insert_id": "p03-signup" },
+        { "distinct_id": "p03", "event": "view_pricing",    "timestamp": "2026-08-06T10:00:00Z", "insert_id": "p03-vp-1" },
+        { "distinct_id": "p03", "event": "view_pricing",    "timestamp": "2026-08-08T10:00:00Z", "insert_id": "p03-vp-2" },
+        { "distinct_id": "p03", "event": "create_project",  "timestamp": "2026-08-19T10:00:00Z", "insert_id": "p03-create" },
+        { "distinct_id": "p03", "event": "invite_teammate", "timestamp": "2026-08-19T10:30:00Z", "insert_id": "p03-invite" },
+
+        { "distinct_id": "p04", "event": "signup",          "timestamp": "2026-08-05T11:00:00Z", "insert_id": "p04-signup" },
+        { "distinct_id": "p04", "event": "create_project",  "timestamp": "2026-08-19T11:00:01Z", "insert_id": "p04-create" },
+
+        { "distinct_id": "p05", "event": "create_project",  "timestamp": "2026-08-06T08:00:00Z", "insert_id": "p05-create" },
+        { "distinct_id": "p05", "event": "signup",          "timestamp": "2026-08-06T09:00:00Z", "insert_id": "p05-signup" },
+        { "distinct_id": "p05", "event": "invite_teammate", "timestamp": "2026-08-06T10:00:00Z", "insert_id": "p05-invite" },
+        { "distinct_id": "p05", "event": "view_pricing",    "timestamp": "2026-08-07T08:00:00Z", "insert_id": "p05-vp-1" },
+
+        { "distinct_id": "p06", "event": "signup",          "timestamp": "2026-08-07T08:00:00Z", "insert_id": "p06-signup" },
+        { "distinct_id": "p06", "event": "view_pricing",    "timestamp": "2026-08-07T08:30:00Z", "insert_id": "p06-vp" },
+        { "distinct_id": "p06", "event": "create_project",  "timestamp": "2026-08-07T09:00:00Z", "insert_id": "p06-create" },
+        { "distinct_id": "p06", "event": "invite_teammate", "timestamp": "2026-08-07T09:30:00Z", "insert_id": "p06-invite" },
+
+        { "distinct_id": "p07", "event": "signup",          "timestamp": "2026-08-08T08:00:00Z", "insert_id": "p07-signup-1" },
+        { "distinct_id": "p07", "event": "signup",          "timestamp": "2026-08-20T08:00:00Z", "insert_id": "p07-signup-2" },
+        { "distinct_id": "p07", "event": "create_project",  "timestamp": "2026-08-23T08:00:00Z", "insert_id": "p07-create" },
+
+        { "distinct_id": "p08", "event": "signup",          "timestamp": "2026-08-31T18:45:00Z", "insert_id": "p08-signup" },
+        { "distinct_id": "p08", "event": "create_project",  "timestamp": "2026-09-01T02:00:00Z", "insert_id": "p08-create" }
+      ]
+    },
+    {
+      "kind": "batch",
+      "label": "P09 as anon-9, before identify",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "events": [
+        { "distinct_id": "anon-9", "event": "view_pricing", "timestamp": "2026-08-10T07:00:00Z", "insert_id": "p09-vp" },
+        { "distinct_id": "anon-9", "event": "signup",       "timestamp": "2026-08-10T07:10:00Z", "insert_id": "p09-signup" }
+      ]
+    },
+    {
+      "kind": "batch",
+      "label": "P09 as user-9, before identify (so identify merges two known persons)",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "events": [
+        { "distinct_id": "user-9", "event": "create_project",  "timestamp": "2026-08-10T08:00:00Z", "insert_id": "p09-create" },
+        { "distinct_id": "user-9", "event": "invite_teammate", "timestamp": "2026-08-11T08:00:00Z", "insert_id": "p09-invite" }
+      ]
+    },
+    { "kind": "identify", "label": "P09: anon-9 is user-9", "server_ts": "2026-09-02T00:00:00Z", "anonymous_id": "anon-9", "user_id": "user-9" },
+    {
+      "kind": "batch",
+      "label": "P10 and P11 share insert_id shared-retry-abc: the second is a retry and is dropped",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "events": [
+        { "distinct_id": "p10", "event": "signup",         "timestamp": "2026-08-11T08:00:00Z", "insert_id": "p10-signup" },
+        { "distinct_id": "p10", "event": "create_project", "timestamp": "2026-08-11T09:00:00Z", "insert_id": "shared-retry-abc" },
+        { "distinct_id": "p11", "event": "signup",         "timestamp": "2026-08-12T08:00:00Z", "insert_id": "p11-signup" },
+        { "distinct_id": "p11", "event": "create_project", "timestamp": "2026-08-12T09:00:00Z", "insert_id": "shared-retry-abc" }
+      ]
+    },
+    {
+      "kind": "batch",
+      "label": "P12: sent_at 3 h behind server_ts, so both events shift forward by exactly 3 h",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-01T21:00:00Z",
+      "events": [
+        { "distinct_id": "p12", "event": "signup",         "timestamp": "2026-08-14T08:00:00Z", "insert_id": "p12-signup" },
+        { "distinct_id": "p12", "event": "create_project", "timestamp": "2026-08-14T08:30:00Z", "insert_id": "p12-create" }
+      ]
+    },
+    {
+      "kind": "batch",
+      "label": "P13: a client timestamp in 2031 is clamped to server_ts with ts_source server",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "events": [
+        { "distinct_id": "p13", "event": "signup",         "timestamp": "2031-01-01T00:00:00Z", "insert_id": "p13-signup" },
+        { "distinct_id": "p13", "event": "create_project", "timestamp": "2026-08-15T10:00:00Z", "insert_id": "p13-create" }
+      ]
+    },
+    {
+      "kind": "batch",
+      "label": "P14 signup; the 1 000 view_pricing events follow",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "events": [
+        { "distinct_id": "p14", "event": "signup", "timestamp": "2026-08-16T00:00:00Z", "insert_id": "p14-signup" }
+      ]
+    },
+    {
+      "kind": "generate",
+      "label": "P14: 1 000 view_pricing events one minute apart (too many for the paths top-N)",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "distinct_id": "p14",
+      "event": "view_pricing",
+      "count": 1000,
+      "start": "2026-08-16T00:01:00Z",
+      "step_s": 60,
+      "insert_id_prefix": "p14-vp",
+      "properties": { "page": "pricing" }
+    },
+    {
+      "kind": "batch",
+      "label": "P15: create_project, signup 19 days later, create_project again the next day (any order starts at the later pair)",
+      "server_ts": "2026-09-02T00:00:00Z",
+      "sent_at": "2026-09-02T00:00:00Z",
+      "events": [
+        { "distinct_id": "p15", "event": "create_project", "timestamp": "2026-08-01T10:00:00Z", "insert_id": "p15-create-1" },
+        { "distinct_id": "p15", "event": "signup", "timestamp": "2026-08-20T10:00:00Z", "insert_id": "p15-signup" },
+        { "distinct_id": "p15", "event": "create_project", "timestamp": "2026-08-21T10:00:00Z", "insert_id": "p15-create-2" }
+      ]
+    }
+  ]
+}

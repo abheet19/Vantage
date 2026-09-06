@@ -1,0 +1,19 @@
+{
+  // Node-side files: the Vite and Playwright configs and the e2e harness. These run under Node, not the
+  // browser, so they extend the repo's NodeNext base and add the DOM lib only because Playwright's page
+  // types reference it. The e2e harness spawns the built API and never imports apps/api/src, so nothing
+  // here couples the web build to server internals.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
+    "lib": ["ES2024", "DOM"],
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "types": ["node"]
+  },
+  "include": ["vite.config.ts", "playwright.config.ts", "e2e/**/*.ts"]
+}

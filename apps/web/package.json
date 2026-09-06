@@ -1,0 +1,29 @@
+{
+  "name": "@vantage/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Vantage SPA (03-UI.md): Ask, Funnel, Events, History, Projects, Health. Vite + React 19; talks only to /v1/*, depends on @vantage/contracts only.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vantage/contracts": "0.1.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^26.1.0",
+    "vite": "^8.2.2"
+  }
+}

@@ -1,0 +1,532 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`compileCount > persons and events of one event in range, no row when nothing matched 1`] = `
+"SELECT count(DISTINCT pdi.person_id)::int AS persons, count(*)::int AS events
+FROM events ev
+JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+WHERE ev.project_id = $1
+  AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+  AND ev.event = $5
+HAVING count(*) > 0
+LIMIT $6
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 event · $6 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileFunnel: the design §3.2 funnel and its two other orders > any: every funnel event anchors a window; the earliest anchor from which every step occurs by anchor + window wins (decision 2026-09-05) 1`] = `
+"WITH e AS (
+  -- the funnel's events in range, resolved to persons, tagged with the steps each one satisfies
+  SELECT pdi.person_id, ev.event_ts, ARRAY[ev.event = $5, ev.event = $6, ev.event = $7] AS is_step
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event IN ($5, $6, $7)
+),
+anchors AS (
+  -- any order: from every funnel event, the earliest occurrence of each step at or after it
+  SELECT person_id, event_ts AS t0,
+         min(event_ts) FILTER (WHERE is_step[1]) OVER w AS n1,
+         min(event_ts) FILTER (WHERE is_step[2]) OVER w AS n2,
+         min(event_ts) FILTER (WHERE is_step[3]) OVER w AS n3
+  FROM e
+  WINDOW w AS (PARTITION BY person_id ORDER BY event_ts DESC)
+),
+converted AS (
+  -- per person, the earliest anchor whose window holds steps 1..k, for every k, and the occurrences chosen at the anchor that completes the funnel
+  SELECT person_id,
+         min(t0) FILTER (WHERE n1 IS NOT NULL AND n2 IS NOT NULL AND greatest(n1, n2) <= t0 + $8::interval) AS a2,
+         min(t0) FILTER (WHERE n1 IS NOT NULL AND n2 IS NOT NULL AND n3 IS NOT NULL AND greatest(n1, n2, n3) <= t0 + $8::interval) AS a3,
+         (array_agg(least(n1, n2, n3) ORDER BY t0) FILTER (WHERE n1 IS NOT NULL AND n2 IS NOT NULL AND n3 IS NOT NULL AND greatest(n1, n2, n3) <= t0 + $8::interval))[1] AS t_first,
+         (array_agg(greatest(n1, n2, n3) ORDER BY t0) FILTER (WHERE n1 IS NOT NULL AND n2 IS NOT NULL AND n3 IS NOT NULL AND greatest(n1, n2, n3) <= t0 + $8::interval))[1] AS t_last
+  FROM anchors
+  GROUP BY person_id
+),
+s1 AS (
+  -- did step 1 in range (in any order the window may start at a later step, but step 1 is counted from the first)
+  SELECT person_id, min(event_ts) AS t1
+  FROM e
+  WHERE is_step[1]
+  GROUP BY person_id
+),
+s2 AS (
+  -- did steps 1 to 2 inside one window
+  SELECT person_id
+  FROM converted
+  WHERE a2 IS NOT NULL
+),
+s3 AS (
+  -- did steps 1 to 3 inside one window
+  SELECT person_id, t_first, t_last
+  FROM converted
+  WHERE a3 IS NOT NULL
+)
+SELECT count(s1.person_id)::int AS step_1,
+       count(s2.person_id)::int AS step_2,
+       count(s3.person_id)::int AS step_3,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM s3.t_last - s3.t_first)::float8) FILTER (WHERE s3.person_id IS NOT NULL))::float8 AS median_s
+FROM s1
+LEFT JOIN s2 USING (person_id)
+LEFT JOIN s3 USING (person_id)
+HAVING count(s1.person_id) > 0
+LIMIT $9
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 step 1 event · $6 step 2 event · $7 step 3 event · $8 conversion window · $9 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileFunnel: the design §3.2 funnel and its two other orders > sequential, 3 steps, 14-day window: one CTE per statement about people, parameters only for values 1`] = `
+"WITH e AS (
+  -- the funnel's events in range, resolved to persons, tagged with the steps each one satisfies
+  SELECT pdi.person_id, ev.event_ts, ARRAY[ev.event = $5, ev.event = $6, ev.event = $7] AS is_step
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event IN ($5, $6, $7)
+),
+s1 AS (
+  -- each person's first step 1 in range: the funnel starts there and nowhere else
+  SELECT person_id, min(event_ts) AS t1
+  FROM e
+  WHERE is_step[1]
+  GROUP BY person_id
+),
+s2 AS (
+  -- earliest step 2 strictly after t1, inside the window
+  SELECT s1.person_id, s1.t1, min(e.event_ts) AS t2
+  FROM s1
+  JOIN e ON e.person_id = s1.person_id
+  WHERE e.is_step[2] AND e.event_ts > s1.t1 AND e.event_ts <= s1.t1 + $8::interval
+  GROUP BY s1.person_id, s1.t1
+),
+s3 AS (
+  -- earliest step 3 strictly after t2, still inside the window from t1
+  SELECT s2.person_id, s2.t1, min(e.event_ts) AS t3
+  FROM s2
+  JOIN e ON e.person_id = s2.person_id
+  WHERE e.is_step[3] AND e.event_ts > s2.t2 AND e.event_ts <= s2.t1 + $8::interval
+  GROUP BY s2.person_id, s2.t1
+)
+SELECT count(s1.person_id)::int AS step_1,
+       count(s2.person_id)::int AS step_2,
+       count(s3.person_id)::int AS step_3,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM s3.t3 - s3.t1)::float8) FILTER (WHERE s3.person_id IS NOT NULL))::float8 AS median_s
+FROM s1
+LEFT JOIN s2 USING (person_id)
+LEFT JOIN s3 USING (person_id)
+HAVING count(s1.person_id) > 0
+LIMIT $9
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 step 1 event · $6 step 2 event · $7 step 3 event · $8 conversion window · $9 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileFunnel: the design §3.2 funnel and its two other orders > strict: adds the lead()-based stream, ordered by (event_ts, event_id) so ties are walked in arrival order, and requires the next event to be the next step 1`] = `
+"WITH e AS (
+  -- the funnel's events in range, resolved to persons, tagged with the steps each one satisfies
+  SELECT pdi.person_id, ev.event_ts, ARRAY[ev.event = $5, ev.event = $6, ev.event = $7] AS is_step
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event IN ($5, $6, $7)
+),
+s1 AS (
+  -- each person's first step 1 in range: the funnel starts there and nowhere else
+  SELECT person_id, min(event_ts) AS t1
+  FROM e
+  WHERE is_step[1]
+  GROUP BY person_id
+),
+stream AS (
+  -- strict order: every event of a step-1 person inside their window, with the event that came right after it (ties in time broken by arrival)
+  SELECT s1.person_id, s1.t1, ev.event_ts, ARRAY[ev.event = $5, ev.event = $6, ev.event = $7] AS is_step,
+         lead(ev.event_ts) OVER w AS next_ts, lead(ARRAY[ev.event = $5, ev.event = $6, ev.event = $7]) OVER w AS next_is_step
+  FROM s1
+  JOIN person_distinct_ids pdi ON pdi.project_id = $1 AND pdi.person_id = s1.person_id
+  JOIN events ev ON ev.project_id = $1 AND ev.distinct_id = pdi.distinct_id
+  WHERE ev.event_ts >= s1.t1 AND ev.event_ts <= s1.t1 + $8::interval AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+  WINDOW w AS (PARTITION BY s1.person_id ORDER BY ev.event_ts, ev.event_id)
+),
+s2 AS (
+  -- strict: the event right after step 1 must be step 2 (any other event breaks the chain)
+  SELECT s1.person_id, s1.t1, min(x.next_ts) AS t2
+  FROM s1
+  JOIN stream x ON x.person_id = s1.person_id AND x.event_ts = s1.t1
+  WHERE x.is_step[1] AND x.next_is_step[2] AND x.next_ts > s1.t1
+  GROUP BY s1.person_id, s1.t1
+),
+s3 AS (
+  -- strict: the event right after step 2 must be step 3 (any other event breaks the chain)
+  SELECT s2.person_id, s2.t1, min(x.next_ts) AS t3
+  FROM s2
+  JOIN stream x ON x.person_id = s2.person_id AND x.event_ts = s2.t2
+  WHERE x.is_step[2] AND x.next_is_step[3] AND x.next_ts > s2.t2
+  GROUP BY s2.person_id, s2.t1
+)
+SELECT count(s1.person_id)::int AS step_1,
+       count(s2.person_id)::int AS step_2,
+       count(s3.person_id)::int AS step_3,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM s3.t3 - s3.t1)::float8) FILTER (WHERE s3.person_id IS NOT NULL))::float8 AS median_s
+FROM s1
+LEFT JOIN s2 USING (person_id)
+LEFT JOIN s3 USING (person_id)
+HAVING count(s1.person_id) > 0
+LIMIT $9
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 step 1 event · $6 step 2 event · $7 step 3 event · $8 conversion window · $9 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileFunnel: the design §3.2 funnel and its two other orders > with a breakdown: the 50 commonest values keep their name, the rest are "other", totals via GROUPING SETS 1`] = `
+"WITH e AS (
+  -- the funnel's events in range, resolved to persons, tagged with the steps each one satisfies
+  SELECT pdi.person_id, ev.event_ts, ARRAY[ev.event = $5, ev.event = $6, ev.event = $7] AS is_step, ev.properties ->> $9 AS breakdown
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event IN ($5, $6, $7)
+),
+s1 AS (
+  -- each person's first step 1 in range: the funnel starts there and nowhere else
+  SELECT person_id, min(event_ts) AS t1
+  FROM e
+  WHERE is_step[1]
+  GROUP BY person_id
+),
+s2 AS (
+  -- earliest step 2 strictly after t1, inside the window
+  SELECT s1.person_id, s1.t1, min(e.event_ts) AS t2
+  FROM s1
+  JOIN e ON e.person_id = s1.person_id
+  WHERE e.is_step[2] AND e.event_ts > s1.t1 AND e.event_ts <= s1.t1 + $8::interval
+  GROUP BY s1.person_id, s1.t1
+),
+s3 AS (
+  -- earliest step 3 strictly after t2, still inside the window from t1
+  SELECT s2.person_id, s2.t1, min(e.event_ts) AS t3
+  FROM s2
+  JOIN e ON e.person_id = s2.person_id
+  WHERE e.is_step[3] AND e.event_ts > s2.t2 AND e.event_ts <= s2.t1 + $8::interval
+  GROUP BY s2.person_id, s2.t1
+),
+b AS (
+  -- breakdown: the property's value on each person's first step-1 event
+  SELECT s1.person_id, min(e.breakdown) AS value
+  FROM s1
+  JOIN e ON e.person_id = s1.person_id AND e.event_ts = s1.t1 AND e.is_step[1]
+  GROUP BY s1.person_id
+),
+top AS (
+  -- the commonest values keep their name — every other value is reported as "other"
+  SELECT value, true AS is_top
+  FROM b
+  GROUP BY value
+  ORDER BY count(*) DESC, value
+  LIMIT $10
+),
+g AS (
+  -- each step-1 person with the group they are counted under
+  SELECT b.person_id, CASE WHEN t.is_top THEN b.value END AS value, t.is_top IS NULL AS other
+  FROM b
+  LEFT JOIN top t ON t.value IS NOT DISTINCT FROM b.value
+)
+SELECT grouping(g.value, g.other) = 3 AS is_total, g.value AS breakdown_value, g.other AS breakdown_other,
+       count(s1.person_id)::int AS step_1,
+       count(s2.person_id)::int AS step_2,
+       count(s3.person_id)::int AS step_3,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM s3.t3 - s3.t1)::float8) FILTER (WHERE s3.person_id IS NOT NULL))::float8 AS median_s
+FROM s1
+LEFT JOIN s2 USING (person_id)
+LEFT JOIN s3 USING (person_id)
+JOIN g USING (person_id)
+GROUP BY GROUPING SETS ((), (g.value, g.other))
+HAVING count(s1.person_id) > 0
+ORDER BY is_total DESC, step_1 DESC, breakdown_other, breakdown_value
+LIMIT $11
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 step 1 event · $6 step 2 event · $7 step 3 event · $8 conversion window · $9 breakdown property key · $10 breakdown groups kept by name (the rest are "other") · $11 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileFunnel: the design §3.2 funnel and its two other orders > with step and global property filters: keys and values are parameters, operators come from the allowlist 1`] = `
+"WITH e AS (
+  -- the funnel's events in range, resolved to persons, tagged with the steps each one satisfies
+  SELECT pdi.person_id, ev.event_ts, ARRAY[(ev.event = $5 AND ev.properties -> $6 = $7::jsonb), ev.event = $8] AS is_step
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event IN ($5, $8)
+    AND (ev.properties -> $10 IN (SELECT jsonb_array_elements($11::jsonb)))
+    AND ((ev.properties ? $12))
+    AND (jsonb_typeof(ev.properties -> $13) = jsonb_typeof($14::jsonb) AND ev.properties -> $13 > $14::jsonb)
+    AND (jsonb_typeof(ev.properties -> $15) = 'string' AND position($16 IN ev.properties ->> $15) > 0)
+    AND (NOT coalesce(ev.properties -> $17 IN (SELECT jsonb_array_elements($18::jsonb)), false))
+    AND (NOT coalesce(ev.properties -> $19 = $20::jsonb, false))
+    AND (NOT (ev.properties ? $21))
+),
+s1 AS (
+  -- each person's first step 1 in range: the funnel starts there and nowhere else
+  SELECT person_id, min(event_ts) AS t1
+  FROM e
+  WHERE is_step[1]
+  GROUP BY person_id
+),
+s2 AS (
+  -- earliest step 2 strictly after t1, inside the window
+  SELECT s1.person_id, s1.t1, min(e.event_ts) AS t2
+  FROM s1
+  JOIN e ON e.person_id = s1.person_id
+  WHERE e.is_step[2] AND e.event_ts > s1.t1 AND e.event_ts <= s1.t1 + $9::interval
+  GROUP BY s1.person_id, s1.t1
+)
+SELECT count(s1.person_id)::int AS step_1,
+       count(s2.person_id)::int AS step_2,
+       (percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM s2.t2 - s2.t1)::float8) FILTER (WHERE s2.person_id IS NOT NULL))::float8 AS median_s
+FROM s1
+LEFT JOIN s2 USING (person_id)
+HAVING count(s1.person_id) > 0
+LIMIT $22
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 step 1 event · $6 property key · $7 property value · $8 step 2 event · $9 conversion window · $10 property key · $11 property value · $12 property key · $13 property key · $14 property value · $15 property key · $16 property value · $17 property key · $18 property value · $19 property key · $20 property value · $21 property key · $22 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compilePaths: the design §3.4 top transitions > sessionises by the gap, walks from the start with lead(), keeps step <= steps, ranks by count and reports the total 1`] = `
+"WITH e AS (
+  -- the project's events in range, resolved to persons
+  SELECT pdi.person_id, ev.event, ev.event_ts, ev.event_id
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+),
+lagged AS (
+  -- each event with the time of the one before it, per person
+  SELECT person_id, event, event_ts, event_id, lag(event_ts) OVER w AS prev_ts
+  FROM e
+  WINDOW w AS (PARTITION BY person_id ORDER BY event_ts, event_id)
+),
+sessionised AS (
+  -- each event tagged with its session: a new one starts after a gap longer than the session gap
+  SELECT person_id, event, event_ts, event_id,
+         sum(CASE WHEN prev_ts IS NULL OR event_ts - prev_ts > $6::interval THEN 1 ELSE 0 END)
+           OVER (PARTITION BY person_id ORDER BY event_ts, event_id ROWS UNBOUNDED PRECEDING) AS session_id
+  FROM lagged
+),
+first_start AS (
+  -- the first start event of every session that has one — the walk begins here
+  SELECT DISTINCT ON (person_id, session_id) person_id, session_id, event_ts AS start_ts, event_id AS start_id
+  FROM sessionised
+  WHERE event = $5
+  ORDER BY person_id, session_id, event_ts, event_id
+),
+after_start AS (
+  -- the events of those sessions from the start event onward
+  SELECT s.person_id, s.session_id, s.event, s.event_ts, s.event_id
+  FROM sessionised s
+  JOIN first_start f ON f.person_id = s.person_id AND f.session_id = s.session_id
+  WHERE (s.event_ts, s.event_id) >= (f.start_ts, f.start_id)
+),
+walk AS (
+  -- each step of the walk: the event, the event it leads to, and the depth from the start
+  SELECT person_id, session_id, event AS from_event,
+         lead(event) OVER w AS to_event,
+         event_ts AS from_ts,
+         lead(event_ts) OVER w AS to_ts,
+         (row_number() OVER w)::int AS step
+  FROM after_start
+  WINDOW w AS (PARTITION BY person_id, session_id ORDER BY event_ts, event_id)
+),
+transitions AS (
+  -- the transitions grouped: how many walks took each (step, from, to), and the median gap between the two events
+  SELECT step, from_event, to_event, count(*)::int AS walks,
+         (percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM (to_ts - from_ts))::float8))::float8 AS median_gap_s
+  FROM walk
+  WHERE to_event IS NOT NULL AND step <= $7
+  GROUP BY step, from_event, to_event
+),
+starts AS (
+  -- how many sessions began a walk at the start event — the "% of start" denominator
+  SELECT count(*)::int AS starts
+  FROM first_start
+),
+ranked AS (
+  -- the top transitions by count, with the total count behind the cut
+  SELECT step, from_event, to_event, walks, median_gap_s, (count(*) OVER ())::int AS total_transitions
+  FROM transitions
+  ORDER BY walks DESC, step, from_event, to_event
+  LIMIT $8
+)
+SELECT r.step, r.from_event, r.to_event, r.walks, r.median_gap_s, r.total_transitions, s.starts
+FROM ranked r
+CROSS JOIN starts s
+ORDER BY r.walks DESC, r.step, r.from_event, r.to_event
+LIMIT $9
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 start event · $6 session gap · $7 max steps from the start event · $8 top transitions kept ("showing top 50 of N") · $9 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileRetention: the design §3.3 cohort query with D2, mode, in_progress and whole-cohort truncation > 'on_or_after' compares the member's last return bucket inside the cohort's own horizon (bucket + periods) with >= (decision 2026-09-05) 1`] = `
+"WITH starters AS (
+  -- each person's FIRST start event in range, bucketed by the unit in the project timezone
+  SELECT pdi.person_id, date_trunc($5, min(ev.event_ts AT TIME ZONE $2)) AS cohort_bucket
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event = $7
+  GROUP BY pdi.person_id
+),
+recent AS (
+  -- the newest cohorts that fit under the row cap, and one more so the runner can see the cut
+  SELECT DISTINCT cohort_bucket
+  FROM starters
+  ORDER BY cohort_bucket DESC
+  LIMIT $10
+),
+cohort AS (
+  -- the members of those cohorts
+  SELECT s.person_id, s.cohort_bucket
+  FROM starters s
+  JOIN recent USING (cohort_bucket)
+),
+activity AS (
+  -- the buckets in which each person did the return event, from range start to the last bucket any cohort can reach
+  SELECT DISTINCT pdi.person_id, date_trunc($5, ev.event_ts AT TIME ZONE $2) AS active_bucket
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < ((date_trunc($5, $4::date::timestamp) + (($6::int + 1) || ' ' || $5)::interval) AT TIME ZONE $2)
+    AND ev.event = $8
+),
+last_active AS (
+  -- each cohort member's last return bucket inside their own horizon, bucket + periods
+  SELECT c.person_id, max(a.active_bucket) AS last_active
+  FROM cohort c
+  JOIN activity a ON a.person_id = c.person_id AND a.active_bucket < c.cohort_bucket + (($6::int + 1) || ' ' || $5)::interval
+  GROUP BY c.person_id
+),
+grid AS (
+  -- one cell per cohort member and period n: retained when that last return is in bucket + n or later
+  SELECT c.cohort_bucket, gs.n, c.person_id, coalesce(l.last_active >= c.cohort_bucket + (gs.n || ' ' || $5)::interval, false) AS retained
+  FROM cohort c
+  CROSS JOIN generate_series(0, $6::int) AS gs(n)
+  LEFT JOIN last_active l ON l.person_id = c.person_id
+),
+cells AS (
+  -- one row per cohort and period: size, retained, and whether the bucket the cell looks at may still receive events
+  SELECT cohort_bucket, n, count(*)::int AS size, count(*) FILTER (WHERE retained)::int AS retained,
+         cohort_bucket + ((n + 1) || ' ' || $5)::interval > (now() AT TIME ZONE $2) - make_interval(secs => $9::float8) AS in_progress
+  FROM grid
+  GROUP BY cohort_bucket, n
+)
+SELECT to_char(cohort_bucket, 'YYYY-MM-DD"T"HH24:MI:SS') AS bucket, n, size, retained, in_progress,
+       in_progress AND row_number() OVER (PARTITION BY cohort_bucket + (n || ' ' || $5)::interval ORDER BY cohort_bucket DESC) = 1 AS incomplete_bucket
+FROM cells
+ORDER BY cohort_bucket DESC, n
+LIMIT $11
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 bucket unit · $6 periods · $7 start event · $8 return event · $9 in-progress grace (seconds) · $10 cohorts computed: the newest that fit under the row cap, plus one so a cut shows · $11 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileRetention: the design §3.3 cohort query with D2, mode, in_progress and whole-cohort truncation > day cohorts, 'on': one LEFT JOIN on exactly bucket + n (no aggregate in the grid); activity bounded at the periods horizon; newest cohorts first 1`] = `
+"WITH starters AS (
+  -- each person's FIRST start event in range, bucketed by the unit in the project timezone
+  SELECT pdi.person_id, date_trunc($5, min(ev.event_ts AT TIME ZONE $2)) AS cohort_bucket
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event = $7
+  GROUP BY pdi.person_id
+),
+recent AS (
+  -- the newest cohorts that fit under the row cap, and one more so the runner can see the cut
+  SELECT DISTINCT cohort_bucket
+  FROM starters
+  ORDER BY cohort_bucket DESC
+  LIMIT $10
+),
+cohort AS (
+  -- the members of those cohorts
+  SELECT s.person_id, s.cohort_bucket
+  FROM starters s
+  JOIN recent USING (cohort_bucket)
+),
+activity AS (
+  -- the buckets in which each person did the return event, from range start to the last bucket any cohort can reach
+  SELECT DISTINCT pdi.person_id, date_trunc($5, ev.event_ts AT TIME ZONE $2) AS active_bucket
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < ((date_trunc($5, $4::date::timestamp) + (($6::int + 1) || ' ' || $5)::interval) AT TIME ZONE $2)
+    AND ev.event = $8
+),
+grid AS (
+  -- one cell per cohort member and period n: retained when active in bucket + n
+  SELECT c.cohort_bucket, gs.n, c.person_id, a.person_id IS NOT NULL AS retained
+  FROM cohort c
+  CROSS JOIN generate_series(0, $6::int) AS gs(n)
+  LEFT JOIN activity a ON a.person_id = c.person_id AND a.active_bucket = c.cohort_bucket + (gs.n || ' ' || $5)::interval
+),
+cells AS (
+  -- one row per cohort and period: size, retained, and whether the bucket the cell looks at may still receive events
+  SELECT cohort_bucket, n, count(*)::int AS size, count(*) FILTER (WHERE retained)::int AS retained,
+         cohort_bucket + ((n + 1) || ' ' || $5)::interval > (now() AT TIME ZONE $2) - make_interval(secs => $9::float8) AS in_progress
+  FROM grid
+  GROUP BY cohort_bucket, n
+)
+SELECT to_char(cohort_bucket, 'YYYY-MM-DD"T"HH24:MI:SS') AS bucket, n, size, retained, in_progress,
+       in_progress AND row_number() OVER (PARTITION BY cohort_bucket + (n || ' ' || $5)::interval ORDER BY cohort_bucket DESC) = 1 AS incomplete_bucket
+FROM cells
+ORDER BY cohort_bucket DESC, n
+LIMIT $11
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 bucket unit · $6 periods · $7 start event · $8 return event · $9 in-progress grace (seconds) · $10 cohorts computed: the newest that fit under the row cap, plus one so a cut shows · $11 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileTrend: the design §3.4 trend by bucket > a breakdown caps at 50 values + "other" and returns the total and the groups via GROUPING SETS 1`] = `
+"WITH e AS (
+  -- the event's occurrences in range, resolved to persons and bucketed by the unit in the project timezone
+  SELECT pdi.person_id, date_trunc($5, ev.event_ts AT TIME ZONE $2) AS bucket,
+         ev.properties ->> $7 AS breakdown
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event = $6
+),
+top AS (
+  -- the commonest property values keep their name — every other value is reported as "other"
+  SELECT breakdown, true AS is_top
+  FROM e
+  GROUP BY breakdown
+  ORDER BY count(*) DESC, breakdown
+  LIMIT $9
+),
+g AS (
+  -- each occurrence tagged with the group it is counted under
+  SELECT e.person_id, e.bucket, CASE WHEN t.is_top THEN e.breakdown END AS value, t.is_top IS NULL AS other
+  FROM e
+  LEFT JOIN top t ON t.breakdown IS NOT DISTINCT FROM e.breakdown
+)
+SELECT grouping(value, other) = 3 AS is_total, value AS breakdown_value, other AS breakdown_other,
+       to_char(bucket, 'YYYY-MM-DD"T"HH24:MI:SS') AS bucket, count(*)::int AS value_n,
+       bucket + ('1 ' || $5)::interval > (now() AT TIME ZONE $2) - make_interval(secs => $8::float8) AS in_progress,
+       grouping(value, other) = 3 AND (bucket + ('1 ' || $5)::interval > (now() AT TIME ZONE $2) - make_interval(secs => $8::float8)) AS incomplete_bucket
+FROM g
+GROUP BY GROUPING SETS ((bucket), (bucket, value, other))
+ORDER BY bucket, is_total DESC, breakdown_other, breakdown_value
+LIMIT $10
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 bucket unit · $6 event · $7 breakdown property key · $8 in-progress grace (seconds) · $9 breakdown groups kept by name (the rest are "other") · $10 row cap + 1 (the extra row reveals truncation)"
+`;
+
+exports[`compileTrend: the design §3.4 trend by bucket > day buckets in the project timezone, count(*) per bucket, in-progress flagged, no row for an empty bucket 1`] = `
+"WITH e AS (
+  -- the event's occurrences in range, resolved to persons and bucketed by the unit in the project timezone
+  SELECT pdi.person_id, date_trunc($5, ev.event_ts AT TIME ZONE $2) AS bucket
+  FROM events ev
+  JOIN person_distinct_ids pdi ON pdi.project_id = ev.project_id AND pdi.distinct_id = ev.distinct_id
+  WHERE ev.project_id = $1
+    AND ev.event_ts >= ($3::date::timestamp AT TIME ZONE $2) AND ev.event_ts < (($4::date + 1)::timestamp AT TIME ZONE $2)
+    AND ev.event = $6
+)
+SELECT to_char(bucket, 'YYYY-MM-DD"T"HH24:MI:SS') AS bucket, count(*)::int AS value,
+       bucket + ('1 ' || $5)::interval > (now() AT TIME ZONE $2) - make_interval(secs => $7::float8) AS in_progress,
+       bucket + ('1 ' || $5)::interval > (now() AT TIME ZONE $2) - make_interval(secs => $7::float8) AS incomplete_bucket
+FROM e
+GROUP BY bucket
+ORDER BY bucket
+LIMIT $8
+-- $1 project_id · $2 project timezone · $3 range from (local date) · $4 range to (local date, inclusive) · $5 bucket unit · $6 event · $7 in-progress grace (seconds) · $8 row cap + 1 (the extra row reveals truncation)"
+`;

@@ -1,0 +1,3 @@
+# Migrations are checksummed by the runner; LF everywhere keeps the checksum identical on Windows and Linux.
+* text=auto
+*.sql text eol=lf
