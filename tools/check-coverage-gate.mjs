@@ -20,7 +20,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PER_AREA } from './coverage-thresholds.mjs';
 
@@ -38,7 +38,15 @@ function globToRegExp(glob) {
   return new RegExp(`^${body}$`);
 }
 
-const posix = (file) => (isAbsolute(file) ? relative(root, file) : file).split(sep).join('/').split('\\').join('/');
+// Repo-relative posix path, treating '\\' and '/' alike so per-area matching is OS-independent: a summary
+// written on Windows (backslash paths) and one written on Linux (forward-slash paths) must both match the
+// posix area globs. `node:path`'s isAbsolute/relative are OS-specific — on Linux they mistake a backslash
+// Windows path for a relative one and leave it absolute — so normalise separators first, then strip the root.
+const rootPosix = root.split('\\').join('/');
+const posix = (file) => {
+  const norm = file.split('\\').join('/');
+  return norm.startsWith(`${rootPosix}/`) ? norm.slice(rootPosix.length + 1) : norm;
+};
 
 /**
  * Proves vitest's threshold check can fail a run: one small unit file, an impossible global threshold, a

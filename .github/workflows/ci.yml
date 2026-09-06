@@ -32,7 +32,9 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_HOST_AUTH_METHOD: trust
+          # Password auth (not trust) so the vantage roles' passwords are enforced — the integration suite includes
+          # security tests that a deliberately-wrong role password must be REFUSED (mcp-stdio "a refused boot").
+          POSTGRES_PASSWORD: postgres  # pragma: allowlist secret
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -40,7 +42,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      VANTAGE_TEST_DB: postgres://postgres@127.0.0.1:5432/postgres
+      VANTAGE_TEST_DB: postgres://postgres:postgres@127.0.0.1:5432/postgres  # pragma: allowlist secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -59,7 +61,8 @@ jobs:
       postgres:
         image: postgres:17
         env:
-          POSTGRES_HOST_AUTH_METHOD: trust
+          # Password auth (not trust): the bench boots the app, whose self-test connects as the vantage roles.
+          POSTGRES_PASSWORD: postgres  # pragma: allowlist secret
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U postgres"
@@ -67,7 +70,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      VANTAGE_TEST_DB: postgres://postgres@127.0.0.1:5432/postgres
+      VANTAGE_TEST_DB: postgres://postgres:postgres@127.0.0.1:5432/postgres  # pragma: allowlist secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
