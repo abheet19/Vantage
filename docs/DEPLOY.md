@@ -37,9 +37,10 @@ store (Fly secrets) or a git-ignored `.env`, never in the image.
 One command brings up Postgres + the app. On first boot the Postgres container creates the three roles
 (`vantage_owner` / `vantage_app` / `vantage_reader`) and the `vantage` database from
 [`tools/db-setup.sql`](../tools/db-setup.sql) (via `tools/docker-initdb.sh`), and the API applies
-migrations + grants at boot (its owner URL is set). The compose file ships **dev-only** passwords and a dev
-`VANTAGE_QUERY_TOKEN` (`local-dev-query-token-change-me`); override them via the environment for anything
-real.
+migrations + grants at boot (its owner URL is set). The local Postgres runs with **trust auth** on the
+internal-only compose network, so the roles have **no passwords** and nothing secret lives in the repo.
+Reads are **open locally** (`VANTAGE_QUERY_TOKEN` unset); to require a bearer locally, set it in a
+git-ignored `.env` beside the compose file. A real deployment uses real passwords + Fly secrets (below).
 
 ```sh
 docker compose up -d --build          # build the image and start db + app

@@ -6,21 +6,19 @@
 # (VANTAGE_DATABASE_URL_OWNER is set), then Caddy serves the dashboard and proxies the API. Only Caddy's
 # port (8080) is published; the API's loopback 4100 is not.
 #
-# The passwords and the query token below are DEV defaults so a fresh clone comes up with one command;
-# override them (a .env beside this file, or the shell environment) for anything real. VANTAGE_QUERY_TOKEN
-# is set here, so the read routes require it — see docs/DEPLOY.md for the curl-with-bearer example.
+# No secrets live in this file. The db is on the internal compose network only (its port is never
+# published), so it runs with trust auth and the three roles have NO passwords — a fresh clone comes up
+# with one command and nothing to leak. Reads are open locally (VANTAGE_QUERY_TOKEN unset); set it in a
+# git-ignored .env beside this file to require a bearer, exactly as a real deployment does with fly secrets.
 
 services:
   db:
     image: postgres:17
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_superuser_dev_pw}
-      # Consumed by tools/docker-initdb.sh to set each Vantage role's password on first boot.
+      # Trust auth: the db is internal-only and throwaway, so no password is stored anywhere in the repo.
+      POSTGRES_HOST_AUTH_METHOD: trust
       VANTAGE_DB_NAME: vantage
-      VANTAGE_OWNER_PASSWORD: ${VANTAGE_OWNER_PASSWORD:-owner_dev_pw}
-      VANTAGE_APP_PASSWORD: ${VANTAGE_APP_PASSWORD:-app_dev_pw}
-      VANTAGE_READER_PASSWORD: ${VANTAGE_READER_PASSWORD:-reader_dev_pw}
     volumes:
       - vantage-pgdata:/var/lib/postgresql/data
       - ./tools/db-setup.sql:/vantage/db-setup.sql:ro
@@ -40,12 +38,14 @@ services:
         condition: service_healthy
     environment:
       # RW = vantage_app, RO = vantage_reader, OWNER = vantage_owner (owner set ⇒ migrations apply at boot).
-      VANTAGE_DATABASE_URL_RW: postgres://vantage_app:${VANTAGE_APP_PASSWORD:-app_dev_pw}@db:5432/vantage
-      VANTAGE_DATABASE_URL_RO: postgres://vantage_reader:${VANTAGE_READER_PASSWORD:-reader_dev_pw}@db:5432/vantage
-      VANTAGE_DATABASE_URL_OWNER: postgres://vantage_owner:${VANTAGE_OWNER_PASSWORD:-owner_dev_pw}@db:5432/vantage
-      # The shared READ token: with this set, funnel/retention/trend/paths/count, ask, asks and
-      # events/catalog require `Authorization: Bearer <this>`. Ingest keeps its own per-project key.
-      VANTAGE_QUERY_TOKEN: ${VANTAGE_QUERY_TOKEN:-local-dev-query-token-change-me}
+      # No passwords: the roles use trust auth against the internal-only db.
+      VANTAGE_DATABASE_URL_RW: postgres://vantage_app@db:5432/vantage
+      VANTAGE_DATABASE_URL_RO: postgres://vantage_reader@db:5432/vantage
+      VANTAGE_DATABASE_URL_OWNER: postgres://vantage_owner@db:5432/vantage
+      # The shared READ token. Unset ⇒ reads are open locally (fine for a local db). Set it in a git-ignored
+      # .env to require `Authorization: Bearer <this>` on funnel/retention/trend/paths/count, ask, asks and
+      # events/catalog. Ingest keeps its own per-project key regardless.
+      VANTAGE_QUERY_TOKEN: ${VANTAGE_QUERY_TOKEN:-}
       # The API listens on loopback inside the container (unchanged ⟨D4⟩); Caddy is the public edge.
       VANTAGE_BIND: 127.0.0.1
       VANTAGE_PORT: '4100'

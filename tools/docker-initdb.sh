@@ -10,21 +10,20 @@
 set -eu
 
 : "${VANTAGE_DB_NAME:=vantage}"
-: "${VANTAGE_OWNER_PASSWORD:?set VANTAGE_OWNER_PASSWORD for the postgres service}"
-: "${VANTAGE_APP_PASSWORD:?set VANTAGE_APP_PASSWORD for the postgres service}"
-: "${VANTAGE_READER_PASSWORD:?set VANTAGE_READER_PASSWORD for the postgres service}"
+
+# This local container runs with POSTGRES_HOST_AUTH_METHOD=trust (compose): the database is on the
+# internal compose network only, never published, so the three roles are created WITHOUT passwords and
+# authenticate by trust. No secret is stored in the repo. A real deployment does the opposite — it runs
+# db-setup.sql itself with `set_passwords=true` and real passwords supplied out-of-band (docs/DEPLOY.md).
 
 # 1) The database (CREATE DATABASE cannot run inside db-setup.sql's transaction/DO blocks).
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres \
 	-c "CREATE DATABASE \"${VANTAGE_DB_NAME}\";"
 
-# 2) The three roles + hardening, from the repo's db-setup.sql with the passwords supplied as psql vars.
+# 2) The three roles + hardening, from the repo's db-setup.sql. Passwords are NOT set (trust auth locally).
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres \
-	-v set_passwords=true \
-	-v owner_password="$VANTAGE_OWNER_PASSWORD" \
-	-v app_password="$VANTAGE_APP_PASSWORD" \
-	-v reader_password="$VANTAGE_READER_PASSWORD" \
+	-v set_passwords=false \
 	-v database="$VANTAGE_DB_NAME" \
 	-f /vantage/db-setup.sql
 
-echo "vantage: roles created and database '${VANTAGE_DB_NAME}' hardened; the API will apply migrations + grants at boot."
+echo "vantage: roles created (trust auth, no passwords) and database '${VANTAGE_DB_NAME}' hardened; the API will apply migrations + grants at boot."
