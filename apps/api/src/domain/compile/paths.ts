@@ -38,17 +38,24 @@ const SESSIONISED = `SELECT person_id, event, event_ts, event_id,
          OVER (PARTITION BY person_id ORDER BY event_ts, event_id ROWS UNBOUNDED PRECEDING) AS session_id
 FROM lagged`;
 
-/** The first start event in each session that has one — the walk begins here and nowhere else. */
-const FIRST_START = `SELECT DISTINCT ON (person_id, session_id) person_id, session_id, event_ts AS start_ts, event_id AS start_id
-FROM sessionised
-WHERE event = {start}
-ORDER BY person_id, session_id, event_ts, event_id`;
-
-/** Every event of such a session at or after its first start (row-value compare on the same key the ordering uses). */
-const AFTER_START = `SELECT s.person_id, s.session_id, s.event, s.event_ts, s.event_id
-FROM sessionised s
-JOIN first_start f ON f.person_id = s.person_id AND f.session_id = s.session_id
-WHERE (s.event_ts, s.event_id) >= (f.start_ts, f.start_id)`;
+/**
+ * Every event of a session at or after its first start event. A running count of start events, over the
+ * SAME `(event_ts, event_id)` order the walk uses, is ≥ 1 exactly on the rows at or after the first start:
+ * the first start is the minimum key among the session's start events, so `count(start) so far ≥ 1` iff
+ * this row's key ≥ that minimum. That is identical, row for row and tie-break for tie-break, to the old
+ * `(event_ts, event_id) >= (first_start_ts, first_start_id)` row-value compare, but it needs one window
+ * pass over `sessionised` instead of a self-join back to a per-session first-start CTE, which at scale
+ * matched only on `person_id` and cross-multiplied every event by every session of the person (9 M rows
+ * on the 1 M-event bench). Sessions with no start stay at 0 and drop out.
+ */
+const AFTER_START = `SELECT person_id, session_id, event, event_ts, event_id
+FROM (
+  SELECT person_id, session_id, event, event_ts, event_id,
+         count(*) FILTER (WHERE event = {start})
+           OVER (PARTITION BY person_id, session_id ORDER BY event_ts, event_id ROWS UNBOUNDED PRECEDING) AS seen_start
+  FROM sessionised
+) marked
+WHERE seen_start >= 1`;
 
 /** step = the row's position from the start (1 = the transition out of the start event); `lead` gives the event it goes to. */
 const WALK = `SELECT person_id, session_id, event AS from_event,
@@ -65,8 +72,9 @@ FROM walk
 WHERE to_event IS NOT NULL AND step <= {steps}
 GROUP BY step, from_event, to_event`;
 
+/** How many sessions began a walk: the distinct (person, session) pairs that contain a start event (what the old per-session first-start CTE counted). */
 const STARTS = `SELECT count(*)::int AS starts
-FROM first_start`;
+FROM (SELECT DISTINCT person_id, session_id FROM sessionised WHERE event = {start}) started`;
 
 /** The top transitions; `count(*) OVER ()` runs before the LIMIT, so it is the true total behind the cut. */
 const RANKED = `SELECT step, from_event, to_event, walks, median_gap_s, (count(*) OVER ())::int AS total_transitions
@@ -97,11 +105,10 @@ export function compilePaths(spec: PathsSpec, ctx: CompileCtx): Compiled {
     cte('e', "the project's events in range, resolved to persons", fill(EVENTS, { scan: personEvents(scan), where })),
     cte('lagged', 'each event with the time of the one before it, per person', fill(LAGGED)),
     cte('sessionised', 'each event tagged with its session: a new one starts after a gap longer than the session gap', fill(SESSIONISED, { gap })),
-    cte('first_start', 'the first start event of every session that has one — the walk begins here', fill(FIRST_START, { start })),
-    cte('after_start', 'the events of those sessions from the start event onward', fill(AFTER_START)),
+    cte('after_start', 'the events of each session from its first start event onward (a running count of start events marks the boundary — the walk begins here)', fill(AFTER_START, { start })),
     cte('walk', 'each step of the walk: the event, the event it leads to, and the depth from the start', fill(WALK)),
     cte('transitions', 'the transitions grouped: how many walks took each (step, from, to), and the median gap between the two events', fill(TRANSITIONS, { steps })),
-    cte('starts', 'how many sessions began a walk at the start event — the "% of start" denominator', fill(STARTS)),
+    cte('starts', 'how many sessions began a walk at the start event — the "% of start" denominator', fill(STARTS, { start })),
     cte('ranked', 'the top transitions by count, with the total count behind the cut', fill(RANKED, { top })),
   ];
   return seal('paths', ctx, { sql: assembleStatement(ctes, fill(SELECT), p, ctx.rowCap), params: p.list }, compileMeta(spec.range, ctx));

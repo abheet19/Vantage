@@ -306,19 +306,16 @@ sessionised AS (
            OVER (PARTITION BY person_id ORDER BY event_ts, event_id ROWS UNBOUNDED PRECEDING) AS session_id
   FROM lagged
 ),
-first_start AS (
-  -- the first start event of every session that has one — the walk begins here
-  SELECT DISTINCT ON (person_id, session_id) person_id, session_id, event_ts AS start_ts, event_id AS start_id
-  FROM sessionised
-  WHERE event = $5
-  ORDER BY person_id, session_id, event_ts, event_id
-),
 after_start AS (
-  -- the events of those sessions from the start event onward
-  SELECT s.person_id, s.session_id, s.event, s.event_ts, s.event_id
-  FROM sessionised s
-  JOIN first_start f ON f.person_id = s.person_id AND f.session_id = s.session_id
-  WHERE (s.event_ts, s.event_id) >= (f.start_ts, f.start_id)
+  -- the events of each session from its first start event onward (a running count of start events marks the boundary — the walk begins here)
+  SELECT person_id, session_id, event, event_ts, event_id
+  FROM (
+    SELECT person_id, session_id, event, event_ts, event_id,
+           count(*) FILTER (WHERE event = $5)
+             OVER (PARTITION BY person_id, session_id ORDER BY event_ts, event_id ROWS UNBOUNDED PRECEDING) AS seen_start
+    FROM sessionised
+  ) marked
+  WHERE seen_start >= 1
 ),
 walk AS (
   -- each step of the walk: the event, the event it leads to, and the depth from the start
@@ -341,7 +338,7 @@ transitions AS (
 starts AS (
   -- how many sessions began a walk at the start event — the "% of start" denominator
   SELECT count(*)::int AS starts
-  FROM first_start
+  FROM (SELECT DISTINCT person_id, session_id FROM sessionised WHERE event = $5) started
 ),
 ranked AS (
   -- the top transitions by count, with the total count behind the cut
