@@ -82,6 +82,9 @@ jobs:
       - name: flyctl deploy
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        # --depot=false uses Fly's own Machines builder (inside Fly's network) rather than Depot, whose
-        # registry push reaches `_api.internal` — unreachable from a GitHub runner, so the Depot push 401s.
-        run: flyctl deploy --remote-only --depot=false
+        # --local-only builds the image with the runner's own Docker and pushes it straight to this app's
+        # Fly registry, then deploys — no remote/Depot builder at all. The remote builders both 401 from a
+        # GitHub runner with an app-scoped deploy token (Depot hits `_api.internal`; the Machines builder is
+        # a shared org app this token cannot start). The deploy token DOES have registry access for its own
+        # app, so the local build + push + release works. ubuntu-latest ships a running Docker daemon.
+        run: flyctl deploy --local-only
