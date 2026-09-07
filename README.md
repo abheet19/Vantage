@@ -42,6 +42,12 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 
 </div>
 
+[![Vantage demo reel — clicking the flagship example question, then the answer animating through the typed spec, the SQL · WHAT ACTUALLY RAN panel with its read-only badge, and the funnel bars, recorded against the live deployment](docs/media/vantage-demo.gif)](https://vantage-abheet.fly.dev)
+
+<div align="center"><sub>The whole pitch in one motion: ask the flagship question, and the answer resolves <b>spec → SQL · WHAT ACTUALLY RAN → number</b> — a typed spec (violet), a <b>parameterised</b> <code>SELECT</code> that runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>, and the funnel bars it produced. A real recording of the deployed app — reproduce it with <code>node tools/capture-reel.mjs</code>.</sub></div>
+
+<br>
+
 [![The SQL · what actually ran panel: the role vantage_reader · READ ONLY · timeout 5 s badge over the parameterised SELECT the question compiled to](docs/media/vantage-ask.png)](https://vantage-abheet.fly.dev)
 
 <div align="center"><sub>The security money-shot: the model fills a typed spec (violet), the compiler turns it into a <b>parameterised</b> <code>SELECT</code> (<code>$1…$7</code>, no interpolation), and it runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>. A real capture of the deployed app — reproduce it with <code>node tools/capture-hero.mjs</code>.</sub></div>
