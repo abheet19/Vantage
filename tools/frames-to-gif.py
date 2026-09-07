@@ -43,15 +43,17 @@ def main() -> int:
         images.append(im)
         durations.append(int(entry["ms"]))
 
-    # Merge runs of identical frames into one long-duration frame.
+    # Merge runs of identical frames into one long-duration frame — capped at
+    # MAX_HOLD_MS so a long static run still reads as a beat, not a freeze.
+    MAX_HOLD_MS = 1500
     merged: list[Image.Image] = []
     merged_ms: list[int] = []
     for im, ms in zip(images, durations):
-        if merged and ImageChops.difference(merged[-1], im).getbbox() is None:
-            merged_ms[-1] += ms
+        if merged and merged_ms[-1] < MAX_HOLD_MS and ImageChops.difference(merged[-1], im).getbbox() is None:
+            merged_ms[-1] = min(MAX_HOLD_MS, merged_ms[-1] + ms)
             continue
         merged.append(im)
-        merged_ms.append(ms)
+        merged_ms.append(min(MAX_HOLD_MS, ms))
     print(f"  {len(images)} captured frames -> {len(merged)} distinct frames")
 
     # One shared 256-colour palette, derived from a strip of frames sampled across the whole reel so

@@ -85,9 +85,21 @@ async function main() {
     frames.push({ file, ms });
     return file;
   };
-  /** Hold the frame already on screen for longer, without paying for another capture. */
-  const hold = (ms) => {
-    if (frames.length > 0) frames[frames.length - 1].ms += ms;
+  /**
+   * Hold on the current state for (up to) `ms` — but as real continuous capture, not one frame
+   * silently stretched. Screenshots every ~110ms for the (capped) duration, so anything still
+   * moving on screen (an in-view animation, a highlight) is actually filmed. No beat is allowed
+   * to run past ~1.4s: frames-to-gif.py will merge an unbroken run of identical screenshots back
+   * down to one frame anyway, so the cap comes from how much real time we sample, not from
+   * pretending a single screenshot lasted longer than it did.
+   */
+  const hold = async (ms, sampleMs = 110, cap = 1400) => {
+    const total = Math.min(ms, cap);
+    const steps = Math.max(1, Math.round(total / sampleMs));
+    for (let i = 0; i < steps; i++) {
+      await shoot(Math.round(total / steps));
+      if (i < steps - 1) await sleep(total / steps);
+    }
   };
 
   // Scrolling in this app happens inside the scroll container that holds the answer, not on <body>.
@@ -149,7 +161,7 @@ async function main() {
   await page.locator('.ask .q').fill(QUESTION);
   await sleep(350);
   await shoot();
-  hold(1500); // let the reader read the question
+  await hold(1500); // let the reader read the question
 
   // ── 2. Ask, and wait out the model + the query ───────────────────────────────────────────────
   const askedAt = Date.now();
@@ -172,24 +184,24 @@ async function main() {
 
   // ── 3. The answer, and the typed spec the model filled ───────────────────────────────────────
   await shoot();
-  hold(2100); // question + the head of the spec
+  await hold(2100); // question + the head of the spec
 
   await scrollTo(scroller, '.qblock.spec', 90, 10, 110);
-  hold(1900); // read the spec: kind, steps, window — the grammar, not SQL
+  await hold(1900); // read the spec: kind, steps, window — the grammar, not SQL
 
   // ── 4. The money shot: SQL · what actually ran ───────────────────────────────────────────────
   await scrollTo(scroller, '.qblock.sql', 60, 11, 110);
-  hold(3400); // the read-only badge and the parameterised SELECT
+  await hold(3400); // the read-only badge and the parameterised SELECT
 
   // Nudge down so the $1…$9 bound parameters are on screen under the statement.
   await scrollTo(scroller, '[data-testid="sql-params"]', 380, 7, 110);
-  hold(2400);
+  await hold(2400);
 
   // ── 5. The payoff: the funnel bars and the number ────────────────────────────────────────────
   const funnel = page.locator('[data-testid="funnel-bars"]');
   if (await funnel.count()) {
     await scrollTo(scroller, '[data-testid="funnel-bars"]', 150, 9, 110);
-    hold(3600); // the bars, the conversion percentages and the summary tiles
+    await hold(3600); // the bars, the conversion percentages and the summary tiles
   }
 
   await context.close();
