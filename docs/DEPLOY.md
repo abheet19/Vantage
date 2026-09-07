@@ -28,9 +28,28 @@ mechanisms are independent. `/health` is intentionally left open so orchestrator
 exposes no analytics data. Generate a token with e.g. `openssl rand -hex 32`, and keep it in a secrets
 store (Fly secrets) or a git-ignored `.env`, never in the image.
 
-> Note: `POST /v1/projects` (create/list project) is administrative and remains open, as under D4. If you
-> host Vantage on the open internet, put the whole app behind your own auth proxy or restrict who can reach
-> it — the query token protects the analytics read surface, not project administration.
+## The project-admin gate — `VANTAGE_ADMIN_TOKEN`
+
+The query token protects the analytics **read** surface. Project **administration** is a separate write
+surface — `POST /v1/projects` (create a project) and `POST /v1/projects/:id/rotate-key` (rotate a project's
+ingest key) — which is likewise unauthenticated under D4. On a public deployment that would be an open
+project-admin surface: any visitor could create projects or rotate someone's ingest key. **`VANTAGE_ADMIN_TOKEN`**
+closes that gap, mirroring the read gate exactly:
+
+- **Unset (or empty)** → today's exact behaviour: create and rotate-key are open (loopback-only honesty).
+- **Set (≥ 16 chars)** → each of `POST /v1/projects` and `POST /v1/projects/:id/rotate-key` requires
+  `Authorization: Bearer <that token>`; a missing or wrong token is `401 {"code":"INVALID_ADMIN_TOKEN", ...}`.
+
+It is a **single shared admin token** for the whole instance, **independent** of both `VANTAGE_QUERY_TOKEN`
+and the per-project ingest key. Only these two write routes are gated: `GET /v1/projects` (list) stays open —
+it exposes only project ids/names and the dashboard needs it — as do all the read/insights/ask/audit/events
+routes, ingest, identify, and `/health`. Generate a token with e.g. `openssl rand -hex 32` and keep it in a
+secrets store (Fly secrets) or a git-ignored `.env`.
+
+> A public read-only demo should set `VANTAGE_ADMIN_TOKEN` (leave `VANTAGE_QUERY_TOKEN` unset if you want
+> reads open to visitors). With it set, the dashboard's **create-project** and **rotate-key** controls will
+> return `401 INVALID_ADMIN_TOKEN` for visitors who don't hold the token — that is intended: the demo stays
+> read-only while you can still administer projects by supplying the token yourself.
 
 ## (a) Local / self-host with Docker Compose
 
@@ -114,15 +133,21 @@ into the image.
 
    (Table privileges are NOT in `db-setup.sql` — the API applies `grants.sql` as `vantage_owner` at boot.)
 
-4. **Set the secrets** — the three role URLs (pointing at your Postgres host) and the shared read token:
+4. **Set the secrets** — the three role URLs (pointing at your Postgres host), the shared read token, and
+   the shared admin token (so visitors cannot create projects or rotate ingest keys):
 
    ```sh
    fly secrets set \
      VANTAGE_DATABASE_URL_RW='postgres://vantage_app:REPLACE_app_pw@vantage-db.internal:5432/vantage' \
      VANTAGE_DATABASE_URL_RO='postgres://vantage_reader:REPLACE_reader_pw@vantage-db.internal:5432/vantage' \
      VANTAGE_DATABASE_URL_OWNER='postgres://vantage_owner:REPLACE_owner_pw@vantage-db.internal:5432/vantage' \
-     VANTAGE_QUERY_TOKEN="$(openssl rand -hex 32)"
+     VANTAGE_QUERY_TOKEN="$(openssl rand -hex 32)" \
+     VANTAGE_ADMIN_TOKEN="$(openssl rand -hex 32)"
    ```
+
+   For a **public read-only demo** where reads should stay open to visitors, set only
+   `VANTAGE_ADMIN_TOKEN` and leave `VANTAGE_QUERY_TOKEN` unset — the read routes answer without a token
+   while create/rotate require the admin bearer.
 
    With the owner URL set, the API migrates at boot; drop it later if you prefer to migrate out of band.
 

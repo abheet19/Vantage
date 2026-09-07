@@ -65,4 +65,17 @@ describe('loadConfig', () => {
     expect(loadConfig({ ...base, VANTAGE_QUERY_TOKEN: 'a-real-32-char-shared-read-token' }).queryToken).toBe('a-real-32-char-shared-read-token');
     expect(() => loadConfig({ ...base, VANTAGE_QUERY_TOKEN: 'short' })).toThrow(/VANTAGE_QUERY_TOKEN must be at least 16 characters/);
   });
+
+  it('defaults the admin token to undefined (project-admin write routes stay open ⟨D4⟩) and treats an empty value as unset', () => {
+    expect(loadConfig(base).adminToken).toBeUndefined();
+    expect(loadConfig({ ...base, VANTAGE_ADMIN_TOKEN: '' }).adminToken).toBeUndefined();
+  });
+
+  it('reads an admin token of at least 16 characters, rejects a short one by name, and keeps it independent of the query token', () => {
+    expect(loadConfig({ ...base, VANTAGE_ADMIN_TOKEN: 'a-real-32-char-shared-admin-tokn' }).adminToken).toBe('a-real-32-char-shared-admin-tokn');
+    expect(() => loadConfig({ ...base, VANTAGE_ADMIN_TOKEN: 'short' })).toThrow(/VANTAGE_ADMIN_TOKEN must be at least 16 characters/);
+    const cfg = loadConfig({ ...base, VANTAGE_QUERY_TOKEN: 'a-real-32-char-shared-read-token', VANTAGE_ADMIN_TOKEN: 'a-real-32-char-shared-admin-tokn' });
+    expect(cfg.queryToken).toBe('a-real-32-char-shared-read-token');
+    expect(cfg.adminToken).toBe('a-real-32-char-shared-admin-tokn');
+  });
 });

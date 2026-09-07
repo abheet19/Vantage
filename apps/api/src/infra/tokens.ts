@@ -25,3 +25,11 @@ export const DATABASE_OPTIONS = 'DATABASE_OPTIONS';
  * (that is the per-project ingest key `ApiKeyGuard` checks) — the two mechanisms are independent.
  */
 export const QUERY_TOKEN = 'QUERY_TOKEN';
+/**
+ * The shared ADMIN token (`VANTAGE_ADMIN_TOKEN`), or `undefined` when unset. When undefined the
+ * project-admin write routes stay open ⟨D4⟩ — today's exact behaviour; when a string, `AdminTokenGuard`
+ * requires it as a Bearer on `POST /v1/projects` (create) and `POST /v1/projects/:id/rotate-key` only.
+ * It is a single shared admin token for the whole instance, INDEPENDENT of both the shared read token
+ * `QUERY_TOKEN` and the per-project ingest key `ApiKeyGuard` checks — all three mechanisms are separate.
+ */
+export const ADMIN_TOKEN = 'ADMIN_TOKEN';

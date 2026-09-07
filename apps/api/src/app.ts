@@ -8,8 +8,9 @@
  * before a byte of it is parsed.
  *
  * The LLM adapter is chosen by the `llm` argument (S3) for the same reason: `main.ts` passes what
- * `loadConfig` read, tests pass nothing and override the port. The `queryToken` argument is threaded the
- * same way into `AuthModule.forRoot`, which decides whether the read routes are open ⟨D4⟩ or gated.
+ * `loadConfig` read, tests pass nothing and override the port. The `queryToken` and `adminToken` arguments
+ * are threaded the same way into `AuthModule.forRoot`, which decides whether the read routes and the
+ * project-admin write routes are open ⟨D4⟩ or gated (independently).
  *
  * What it must never do: register a route, or read the environment (config arrives as an argument).
  */
@@ -37,10 +38,10 @@ export const DEFAULT_LLM: LlmConfig = { adapter: 'none', ollamaModel: OLLAMA_DEF
 
 @Module({})
 export class AppModule {
-  static forRoot(db: DatabaseOptions, llm: LlmConfig = DEFAULT_LLM, queryToken?: string): DynamicModule {
+  static forRoot(db: DatabaseOptions, llm: LlmConfig = DEFAULT_LLM, queryToken?: string, adminToken?: string): DynamicModule {
     return {
       module: AppModule,
-      imports: [AuthModule.forRoot(queryToken), DatabaseModule.forRoot(db), ProjectsModule, IdentityModule, IngestModule, InsightsModule, EventsModule, AuditModule, AskModule.forRoot(llm), HealthModule],
+      imports: [AuthModule.forRoot(queryToken, adminToken), DatabaseModule.forRoot(db), ProjectsModule, IdentityModule, IngestModule, InsightsModule, EventsModule, AuditModule, AskModule.forRoot(llm), HealthModule],
     };
   }
 }

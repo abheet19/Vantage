@@ -56,12 +56,14 @@ export interface TestAppOptions {
   adapter?: string;
   /** `VANTAGE_QUERY_TOKEN`: unset ⇒ the read routes stay open ⟨D4⟩ (the default); set ⇒ they require it as a Bearer. */
   queryToken?: string;
+  /** `VANTAGE_ADMIN_TOKEN`: unset ⇒ the project-admin write routes stay open ⟨D4⟩ (the default); set ⇒ create/rotate require it as a Bearer. */
+  adminToken?: string;
 }
 
 /** Builds and initialises the app; rejects (and leaks nothing) when the boot self-test refuses. */
 export async function createTestApp(options: TestAppOptions = {}): Promise<TestApp> {
   const clock = options.clock ?? new FixedClock(new Date('2026-09-02T00:00:00Z'));
-  let builder = Test.createTestingModule({ imports: [AppModule.forRoot(dbOptions(options.db), undefined, options.queryToken)] }).overrideProvider(CLOCK).useValue(clock);
+  let builder = Test.createTestingModule({ imports: [AppModule.forRoot(dbOptions(options.db), undefined, options.queryToken, options.adminToken)] }).overrideProvider(CLOCK).useValue(clock);
   if (options.llm) builder = builder.overrideProvider(LLM_PORT).useValue(options.llm).overrideProvider(LLM_ADAPTER).useValue(options.adapter ?? 'scripted');
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false, logger: ['error'] });
@@ -88,7 +90,10 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
     clock,
     owner,
     async createProject(name = `test ${Date.now()}`, timezone = 'Asia/Kolkata') {
-      const res = await http.post('/v1/projects').send({ name, timezone }).expect(201);
+      // When VANTAGE_ADMIN_TOKEN is set the create route is gated, so setup sends the admin bearer.
+      let req = http.post('/v1/projects');
+      if (options.adminToken) req = req.set(adminBearer(options.adminToken));
+      const res = await req.send({ name, timezone }).expect(201);
       return { project_id: res.body.project_id, api_key: res.body.api_key, timezone };
     },
     async close() {
@@ -104,5 +109,10 @@ export function bearer(project: TestProject): Record<string, string> {
 
 /** The shared read token as a Bearer header, for the query-token gate (distinct from a project's ingest key). */
 export function queryBearer(token: string): Record<string, string> {
+  return { Authorization: `Bearer ${token}` };
+}
+
+/** The shared admin token as a Bearer header, for the admin-token gate on the project-admin write routes. */
+export function adminBearer(token: string): Record<string, string> {
   return { Authorization: `Bearer ${token}` };
 }

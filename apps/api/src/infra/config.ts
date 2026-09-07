@@ -8,7 +8,9 @@
  *
  * `VANTAGE_QUERY_TOKEN` is read here too: unset/empty ⇒ the query routes stay open ⟨D4⟩; set (≥ 16 chars)
  * ⇒ the read routes require it as a Bearer (`QueryTokenGuard`). It is a single shared read token, not a
- * per-project ingest key.
+ * per-project ingest key. `VANTAGE_ADMIN_TOKEN` mirrors it for the project-admin write routes (create
+ * project, rotate key): unset/empty ⇒ open ⟨D4⟩; set (≥ 16 chars) ⇒ they require it as a Bearer
+ * (`AdminTokenGuard`). It is independent of both the read token and the ingest key.
  *
  * The LLM settings live here too: `VANTAGE_LLM` picks the adapter (`none` by default, so the boundary
  * demo needs no model), choosing `anthropic` without `VANTAGE_ANTHROPIC_API_KEY` fails at boot by name,
@@ -63,6 +65,13 @@ export interface ApiConfig {
    * a single shared read token for the instance, NOT a per-project ingest key.
    */
   queryToken: string | undefined;
+  /**
+   * The shared admin token (`VANTAGE_ADMIN_TOKEN`). `undefined` when unset or empty ⇒ the project-admin
+   * write routes (create project, rotate key) stay open ⟨D4⟩ (today's behaviour); a string ⇒ each requires
+   * `Authorization: Bearer <it>` (`AdminTokenGuard`). It is a single shared admin token for the instance,
+   * INDEPENDENT of both the read token and the per-project ingest key.
+   */
+  adminToken: string | undefined;
 }
 
 /** `apps/api/migrations`, resolved from this file so it is right whether run from `src` (vitest) or `dist` (node). */
@@ -98,6 +107,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
   if (queryToken !== undefined && queryToken.length < 16) {
     throw new Error('VANTAGE_QUERY_TOKEN must be at least 16 characters when set (leave it unset to keep the query routes open, loopback-only)');
   }
+  // Empty ⇒ undefined ⇒ the project-admin write routes stay open ⟨D4⟩. When set it must be long enough to
+  // be a real secret; independent of VANTAGE_QUERY_TOKEN. The token is otherwise opaque and never logged.
+  const adminTokenRaw = env['VANTAGE_ADMIN_TOKEN'];
+  const adminToken = adminTokenRaw && adminTokenRaw.length > 0 ? adminTokenRaw : undefined;
+  if (adminToken !== undefined && adminToken.length < 16) {
+    throw new Error('VANTAGE_ADMIN_TOKEN must be at least 16 characters when set (leave it unset to keep the project-admin write routes open, loopback-only)');
+  }
   return {
     rwUrl: env['VANTAGE_DATABASE_URL_RW'] as string,
     roUrl: env['VANTAGE_DATABASE_URL_RO'] as string,
@@ -114,6 +130,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
       anthropicApiKey,
     },
     queryToken,
+    adminToken,
   };
 }
 

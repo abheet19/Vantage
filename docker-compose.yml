@@ -46,6 +46,11 @@ services:
       # .env to require `Authorization: Bearer <this>` on funnel/retention/trend/paths/count, ask, asks and
       # events/catalog. Ingest keeps its own per-project key regardless.
       VANTAGE_QUERY_TOKEN: ${VANTAGE_QUERY_TOKEN:-}
+      # The shared ADMIN token. Unset ⇒ the project-admin write routes (POST /v1/projects, .../rotate-key)
+      # are open locally. Set it in a git-ignored .env to require `Authorization: Bearer <this>` on them, so a
+      # public read-only demo cannot create projects or rotate keys. Independent of VANTAGE_QUERY_TOKEN and of
+      # the per-project ingest key; reads and GET /v1/projects stay open regardless.
+      VANTAGE_ADMIN_TOKEN: ${VANTAGE_ADMIN_TOKEN:-}
       # The API listens on loopback inside the container (unchanged ⟨D4⟩); Caddy is the public edge.
       VANTAGE_BIND: 127.0.0.1
       VANTAGE_PORT: '4100'

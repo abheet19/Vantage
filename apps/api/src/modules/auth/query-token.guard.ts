@@ -23,8 +23,11 @@ import type { Request } from 'express';
 import { QUERY_TOKEN } from '../../infra/tokens.js';
 import { BEARER } from '../projects/api-key.guard.js';
 
-/** Constant-time equality that neither leaks length nor throws on unequal lengths: compare fixed-width digests. */
-function sameToken(a: string, b: string): boolean {
+/**
+ * Constant-time equality that neither leaks length nor throws on unequal lengths: compare fixed-width
+ * digests. Exported so `AdminTokenGuard` compares its shared token exactly the same way.
+ */
+export function sameToken(a: string, b: string): boolean {
   return timingSafeEqual(createHash('sha256').update(a).digest(), createHash('sha256').update(b).digest());
 }
 

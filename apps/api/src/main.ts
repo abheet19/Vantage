@@ -21,7 +21,7 @@ async function main(): Promise<void> {
   const logger = new Logger('vantage');
   const config = loadConfig();
   const app = await NestFactory.create<NestExpressApplication>(
-    AppModule.forRoot({ rwUrl: config.rwUrl, roUrl: config.roUrl, ownerUrl: config.ownerUrl, migrationRole: config.migrationRole, migrationsDir: config.migrationsDir }, config.llm, config.queryToken),
+    AppModule.forRoot({ rwUrl: config.rwUrl, roUrl: config.roUrl, ownerUrl: config.ownerUrl, migrationRole: config.migrationRole, migrationsDir: config.migrationsDir }, config.llm, config.queryToken, config.adminToken),
     { bodyParser: false },
   );
   configureApp(app);
@@ -31,7 +31,10 @@ async function main(): Promise<void> {
   if (!loopback && !config.queryToken) {
     logger.warn(`VANTAGE_BIND=${config.bind} with no VANTAGE_QUERY_TOKEN: the query routes are unauthenticated; only ingest requires an API key. Set VANTAGE_QUERY_TOKEN to require a shared read token, or keep the bind on loopback. Make sure this is deliberate.`);
   }
-  logger.log(`listening on http://${config.bind}:${config.port}; ask adapter: ${config.llm.adapter}; read routes: ${config.queryToken ? 'require VANTAGE_QUERY_TOKEN' : 'open (loopback by design ⟨D4⟩)'}`);
+  if (!loopback && !config.adminToken) {
+    logger.warn(`VANTAGE_BIND=${config.bind} with no VANTAGE_ADMIN_TOKEN: the project-admin write routes (POST /v1/projects, POST /v1/projects/:id/rotate-key) are unauthenticated, so anyone reaching the API can create projects or rotate ingest keys. Set VANTAGE_ADMIN_TOKEN to require a shared admin token, or keep the bind on loopback. Make sure this is deliberate.`);
+  }
+  logger.log(`listening on http://${config.bind}:${config.port}; ask adapter: ${config.llm.adapter}; read routes: ${config.queryToken ? 'require VANTAGE_QUERY_TOKEN' : 'open (loopback by design ⟨D4⟩)'}; project-admin write routes: ${config.adminToken ? 'require VANTAGE_ADMIN_TOKEN' : 'open (loopback by design ⟨D4⟩)'}`);
 }
 
 main().catch((err: unknown) => {
