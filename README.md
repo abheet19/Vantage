@@ -42,9 +42,9 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 
 </div>
 
-[![Vantage demo reel — clicking the flagship example question, then the answer animating through the typed spec, the SQL · WHAT ACTUALLY RAN panel with its read-only badge, and the funnel bars, recorded against the live deployment](docs/media/vantage-demo.gif)](https://vantage-abheet.fly.dev)
+[![Vantage hero demo — the flagship August question in the Ask box, then the answer resolving through the typed spec, the SQL · WHAT ACTUALLY RAN panel with its role vantage_reader · READ ONLY · timeout 5 s badge, and the funnel bars, recorded against the live deployment](docs/demo/vantage-demo.gif)](https://vantage-abheet.fly.dev)
 
-<div align="center"><sub>The whole pitch in one motion: ask the flagship question, and the answer resolves <b>spec → SQL · WHAT ACTUALLY RAN → number</b> — a typed spec (violet), a <b>parameterised</b> <code>SELECT</code> that runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>, and the funnel bars it produced. A real recording of the deployed app — reproduce it with <code>node tools/capture-reel.mjs</code>.</sub></div>
+<div align="center"><sub>The whole pitch in one motion: ask the flagship question, and the answer resolves <b>spec → SQL · WHAT ACTUALLY RAN → number</b> — a typed spec (violet), a <b>parameterised</b> <code>SELECT</code> that runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>, and the funnel bars it produced. A real recording of the deployed app — reproduce it with <code>node tools/record-demo.mjs</code>.</sub></div>
 
 <br>
 
@@ -329,6 +329,7 @@ the model or from MCP clients · session replay or autocapture · partitioning a
 | [03-UI.md](docs/03-UI.md) | the "Observatory glass" design language, status vocabulary with exact copy, every screen and flow |
 | [prototype/vantage.html](docs/prototype/vantage.html) | the clickable high-fidelity prototype the build must port |
 | [research/](docs/research/) | dated research brief (analytics UIs, local databases, MCP 2026-07-28, NestJS 12, correctness gotchas, LLM-to-SQL prior art) |
+| [tools/record-demo.mjs](tools/record-demo.mjs) | regenerates the hero GIF at the top of this file. `node tools/record-demo.mjs` drives the live deployment with Playwright, captures PNG frames, and [tools/frames-to-gif.py](tools/frames-to-gif.py) (Pillow) assembles them into `docs/demo/vantage-demo.gif`. Point it at a local build with `VANTAGE_URL=http://127.0.0.1:4200`; no ffmpeg required |
 
 ---
 
