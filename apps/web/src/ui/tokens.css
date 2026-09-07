@@ -5,7 +5,21 @@
    :root[data-theme="light"] is the manual light override, and the media block is system-light for anyone
    who has not chosen. The "prototype-only derived tokens" are the ones the ported component CSS
    references (glows, diff bands, the heat-ink used as button-on text); each is built from the tokens
-   above it, so nothing here is a new colour. */
+   above it, so nothing here is a new colour.
+
+   REAL DEPENDENCY: @abheet19/glass (https://github.com/abheet19/glass). ./vendor/glass-base.css is
+   a committed, generated copy of glass's src/tokens.css — see tools/sync-glass.mjs at the repo root
+   for how it's produced and kept current; a live npm/file: link isn't usable here because the
+   Fly.io Dockerfile builds from this repo alone, with no sibling directory in the build context.
+
+   This is an override, not a redesign: every custom property below that glass's base grammar also
+   defines (--r-1/2/3, --ease, --t-fast/base/slow, --gl-blur/edge/fill/spec/shadow, --ink/-2/-3,
+   --bg/--surface/--raised/--line, --fs-0/1/2, --font-ui/mono, --accent/-2, --ok/--warn/--bad/--info)
+   is redeclared in this file's own :root block below, which — later in the cascade at equal
+   specificity — wins. The Gate-1-approved gold/ochre surface below is therefore completely
+   unchanged by the import; it only adds tokens Vantage doesn't already define. */
+@import "./vendor/glass-base.css";
+
 :root {
   --bg:       oklch(13% 0.02 275);      /* indigo-black */
   --surface:  oklch(18% 0.018 275);
