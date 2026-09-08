@@ -19,8 +19,8 @@ import { ResultView } from '../components/ResultView.js';
 import { SqlView } from '../components/Sql.js';
 import { Skeleton, StateCard } from '../components/StateCard.js';
 import { WithProject } from '../components/WithProject.js';
-import { toLocalDate } from '../lib/format.js';
 import { useCatalog } from '../lib/hooks.js';
+import { catalogRange } from '../lib/range.js';
 
 type Order = 'sequential' | 'strict' | 'any';
 type Unit = 'minutes' | 'hours' | 'days';
@@ -32,15 +32,6 @@ const ORDERS: ReadonlyArray<{ id: Order; label: string }> = [
   { id: 'any', label: 'Any' },
 ];
 
-/** The catalog's overall span as two local dates, so the range starts wherever the data does. */
-function defaultRange(catalog: EventCatalog): { from: string; to: string } {
-  const firsts = catalog.events.map((e) => e.first_seen).sort();
-  const lasts = catalog.events.map((e) => e.last_seen).sort();
-  const from = toLocalDate(firsts[0], catalog.timezone) ?? '2026-08-01';
-  const to = toLocalDate(lasts[lasts.length - 1], catalog.timezone) ?? '2026-08-31';
-  return { from, to };
-}
-
 function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCatalog }): JSX.Element {
   const names = useMemo(() => catalog.events.map((e) => e.event), [catalog]);
   const [steps, setSteps] = useState<string[]>(() => {
@@ -50,7 +41,7 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
   const [order, setOrder] = useState<Order>('sequential');
   const [windowValue, setWindowValue] = useState(14);
   const [windowUnit, setWindowUnit] = useState<Unit>('days');
-  const [range, setRange] = useState(() => defaultRange(catalog));
+  const [range, setRange] = useState(() => catalogRange(catalog));
   const [run, setRun] = useState<Run>({ kind: 'idle' });
   const [collapsed, setCollapsed] = useState(false);
   const token = useRef(0);
