@@ -1,5 +1,21 @@
 # Deploying Vantage
 
+## Current existing app — 2026-09-08
+
+Routine releases target **`vantage-abheet`** in `sin`; do not run first-install app/database/volume creation again. From this repository, after passing `npm run check` and `npm run docs:check`:
+
+```powershell
+fly deploy --app vantage-abheet --remote-only --depot=false
+fly status --app vantage-abheet
+fly checks list --app vantage-abheet
+fly logs --app vantage-abheet --no-tail
+```
+
+The commands below this section describe bootstrap/self-hosting. GitHub release automation waits for successful CI on main and uses its exact `head_sha`; it does not deploy every unvalidated push. The pre-commit hook runs lint/typecheck; the full suite is a separate local/CI gate. See [current verification](VERIFICATION.md) for executed scope.
+
+For rollback, record the previous image reference before releasing and use `fly deploy --app vantage-abheet --image <previous-image-reference>` if needed. Image rollback does not roll back persistent data/migrations. That recovery command was documented, not exercised. `fly secrets list` reveals names only; it cannot retrieve secret values.
+
+
 Vantage ships as **one container** behind **one port**. Inside it, the NestJS API listens on loopback
 (`127.0.0.1:4100`, unchanged — decision D4) and [Caddy](https://caddyserver.com) is the only thing on the
 public port: it serves the built web dashboard (SPA, with deep-link fallback) and reverse-proxies the API
@@ -74,8 +90,7 @@ docker compose exec app sh -c 'node apps/api/dist/fixture-load.js'
 # → fixture loaded into project <PROJECT_ID> (Asia/Kolkata): 1046 submitted, 1045 accepted, 1 duplicates, 1 identify
 ```
 
-Now query a funnel through the public edge (`http://localhost:8080`) **with the bearer token**. Without it
-you get a 401:
+If you explicitly configured `VANTAGE_QUERY_TOKEN`, query with that bearer token; without it the API returns 401. With the default unset token, local reads are open:
 
 ```sh
 PID=<PROJECT_ID>
@@ -100,17 +115,17 @@ Fly terminates TLS and routes to Caddy's `internal_port` (8080); `force_https` i
 running (`min_machines_running = 1`). The database URLs and the query token are **secrets**, never baked
 into the image.
 
-1. **Create the app** (matches `app = "vantage"` in `fly.toml`):
+1. **Create the app** (matches `app = "vantage-abheet"` in `fly.toml`):
 
    ```sh
-   fly apps create vantage
+   fly apps create vantage-abheet
    ```
 
 2. **Provision Postgres** — either a Fly Postgres app or any reachable Postgres 17:
 
    ```sh
    fly postgres create --name vantage-db --region iad
-   fly postgres attach vantage-db --app vantage        # sets DATABASE_URL as the superuser
+   fly postgres attach vantage-db --app vantage-abheet        # sets DATABASE_URL as the superuser
    ```
 
 3. **Create the three roles + the `vantage` database in it.** This is the fiddly step, and it is honestly
@@ -157,14 +172,14 @@ into the image.
    fly deploy
    ```
 
-   Then browse `https://vantage.fly.dev/` and curl a funnel exactly as above, against your Fly URL with the
-   token you set. Retrieve the token later with `fly secrets list` (names only) — the value is write-only,
+   Then browse `https://vantage-abheet.fly.dev/` and curl a funnel exactly as above, against your Fly URL with the
+   token you set. Inspect configured secret names with `fly secrets list` — the values are write-only,
    so store it when you set it.
 
 ## Enabling automatic deploys (CI/CD)
 
 [`.github/workflows/release.yml`](../.github/workflows/release.yml) builds and pushes
-`ghcr.io/abheet19/vantage:{latest,sha}` on every push to `main` (using the built-in `GITHUB_TOKEN`), then
+`ghcr.io/abheet19/vantage:{latest,sha}` after successful CI on `main` (using the built-in `GITHUB_TOKEN`), then
 deploys to Fly **only if** a `FLY_API_TOKEN` repository secret exists. (The `secrets` context is not usable
 in a job `if:`, so a `gate` job reads the secret into an output and the `deploy` job keys off that output.)
 The existing test gate in `ci.yml` is untouched.

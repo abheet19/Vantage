@@ -31,7 +31,7 @@ function Explorer({ project, catalog }: { project: ProjectRow; catalog: EventCat
               {formatCount(totalEvents)} events · {catalog.events.length} names
             </Chip>
             <span className="grow" />
-            <span className="small faint">click a row for its properties</span>
+            <span className="small faint">select an event for its properties</span>
           </div>
           <table className="data">
             <thead>
@@ -46,7 +46,7 @@ function Explorer({ project, catalog }: { project: ProjectRow; catalog: EventCat
               {catalog.events.map((e) => (
                 <tr key={e.event} className={`clickable${e.event === selected ? ' sel' : ''}`} onClick={() => setSelected(e.event)}>
                   <td>
-                    <code>{e.event}</code>
+                    <button type="button" className="table-action" aria-pressed={e.event === selected}><code>{e.event}</code></button>
                   </td>
                   <td className="r">{formatCount(e.count)}</td>
                   <td className="r">{formatDateTime(e.first_seen, catalog.timezone)}</td>

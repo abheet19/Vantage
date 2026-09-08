@@ -356,7 +356,7 @@ export function ProjectsView(): JSX.Element {
               <tbody>
                 {projects.map((p) => (
                   <tr key={p.project_id} className={`clickable${current?.project_id === p.project_id ? ' sel' : ''}`} onClick={() => selectProject(p.project_id)}>
-                    <td>{p.name}</td>
+                    <td><button type="button" className="table-action" aria-pressed={current?.project_id === p.project_id}>{p.name}</button></td>
                     <td>
                       <code>{p.timezone}</code>
                     </td>

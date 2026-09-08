@@ -50,7 +50,12 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 
 [![The SQL · what actually ran panel: the role vantage_reader · READ ONLY · timeout 5 s badge over the parameterised SELECT the question compiled to](docs/media/vantage-ask.png)](https://vantage-abheet.fly.dev)
 
-<div align="center"><sub>The security money-shot: the model fills a typed spec (violet), the compiler turns it into a <b>parameterised</b> <code>SELECT</code> (<code>$1…$7</code>, no interpolation), and it runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>. A real capture of the deployed app — reproduce it with <code>node tools/capture-hero.mjs</code>.</sub></div>
+<div align="center"><sub>The security money-shot: the model fills a typed spec (violet), the compiler turns it into a <b>parameterised</b> <code>SELECT</code> (<code>$1…$7</code>, no interpolation), and it runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>. A current local production-build capture — reproduce it with <code>node tools/capture-hero.mjs</code>.</sub></div>
+
+> [!TIP]
+> **Current verification (8 September 2026):** [executed workflows and limits](docs/VERIFICATION.md) · [setup/deploy operations](docs/DEPLOY.md). Events, project selection, and history detail actions are now actual keyboard-focusable buttons. Existing funnel date-range fix was independently verified with both the default range and invalid-range recovery.
+>
+> The two README PNG stills were refreshed from the current real **local production build** and isolated data. Existing GIFs are earlier recordings, retained for the longer walkthrough; they were not re-recorded in this pass.
 
 > [!NOTE]
 > **Where this project is.** Design and low-level design are approved and the build is **feature-complete**
@@ -247,7 +252,7 @@ cannot say. [01-DESIGN.md §4.4](docs/01-DESIGN.md#44-what-an-llm-can-and-cannot
 
 <br>
 
-A ~120-event fixture across 14 people with the arithmetic written out by hand in
+A 1,046-submission fixture across the named adversarial people with the arithmetic written out by hand in
 `august.expected.md`, loaded through the *real* ingest endpoint, with deliberately adversarial rows:
 a conversion at exactly the window boundary and one second past it, an intervening event that
 breaks strict order, a second signup that must not restart the clock, a signup at 18:45 UTC that is
@@ -260,7 +265,7 @@ person and the reason. [02-LLD.md §7.2](docs/02-LLD.md#72-sql-correctness-strat
 
 | Layer | Choice | Why |
 |-------|--------|-----|
-| API | NestJS 12 (or 11 + `nestjs-zod` — decided at slice 1 by what is stable) | module boundaries make the model/database seam visible; DI tokens make the two pools distinct |
+| API | NestJS 12 | module boundaries make the model/database seam visible; DI tokens make the two pools distinct |
 | Contracts | Zod | one schema is the HTTP DTO, the MCP `inputSchema`, and the TypeScript type |
 | Database | PostgreSQL 17, `pg` | roles, `statement_timeout`, covering indexes, BRIN, real plans |
 | MCP | `@modelcontextprotocol/sdk`, stdio | the spec's own recommendation for local servers |

@@ -326,3 +326,7 @@ table.heat td:hover, table.heat td:focus-visible { transform: scale(1.08); z-ind
 .toolcall .th code { color: var(--accent); }
 .toolcall pre { padding: 10px 12px; white-space: pre-wrap; word-break: break-word; }
 .toolcall.result .th code { color: var(--ok); }
+
+/* Keep table actions keyboard reachable without changing the data-table surface. */
+.table-action { appearance: none; border: 0; background: transparent; color: inherit; font: inherit; text-align: inherit; cursor: pointer; padding: 3px 0; }
+.table-action:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 2px; }

@@ -4,7 +4,7 @@
 // asks the flagship example question, and shoots two frames:
 //   docs/media/vantage-ask.png    — the "SQL · what actually ran" panel: the role vantage_reader ·
 //                                    READ ONLY · timeout 5 s badge over the parameterised SELECT
-//   docs/media/vantage-funnel.png — the funnel bars (13 → 8 → 4) the question produced
+//   docs/media/vantage-funnel.png — the funnel bars (13 → 6 → 3) the question produced
 //
 // Run:  node tools/capture-hero.mjs           (uses https://vantage-abheet.fly.dev)
 //       VANTAGE_URL=http://127.0.0.1:4200 node tools/capture-hero.mjs   (against a local web build)
@@ -12,7 +12,7 @@
 // Reproducible: headless Chromium at a crisp 1600×1000 @2x, dark. It sets the project in localStorage
 // before load so the fixture is always the one queried. GIFs are attempted only if ffmpeg is found.
 
-/* global window, document, localStorage -- these appear only inside page.evaluate / addInitScript bodies, which run in the browser context, not Node. */
+/* global localStorage -- these appear only inside page.evaluate / addInitScript bodies, which run in the browser context, not Node. */
 import { chromium } from 'playwright';
 import { mkdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -80,23 +80,21 @@ async function main() {
     const vp = page.viewportSize() ?? VIEWPORT;
     const bar = await page.locator('header.cmd').boundingBox();
     const barH = bar?.height ?? 64;
-    await page.locator('.qblock.sql .bh').scrollIntoViewIfNeeded();
-    await page.evaluate((h) => {
-      const el = document.querySelector('.qblock.sql .bh');
-      if (el) window.scrollBy(0, el.getBoundingClientRect().top - h - 14);
-    }, barH);
+    // The dashboard scrolls its own main container, so window.scrollBy does not frame this panel.
+    await page.locator('.qblock.sql .bh').evaluate(el => el.scrollIntoView({ block: 'start' }));
     await sleep(400);
     const panel = await page.locator('.qblock.sql').boundingBox();
+    const header = await page.locator('.qblock.sql .bh').boundingBox();
     const askOut = join(MEDIA, 'vantage-ask.png');
     const cx = Math.max(0, (panel?.x ?? 0) - 8);
-    const cy = barH + 4;
+    const cy = Math.max(0, (header?.y ?? barH) - 6);
     await page.screenshot({
       path: askOut,
-      clip: { x: cx, y: cy, width: Math.min(vp.width - cx, (panel?.width ?? vp.width) + 16), height: vp.height - cy - 6 },
+      clip: { x: cx, y: cy, width: Math.min(vp.width - cx, (panel?.width ?? vp.width) + 16), height: Math.min(600, vp.height - cy - 6) },
     });
     report(askOut);
 
-    // 2) The funnel bars (13 → 8 → 4).
+    // 2) The funnel bars (13 → 6 → 3).
     const funnel = page.locator('[data-testid="funnel-bars"]');
     const funnelOut = join(MEDIA, 'vantage-funnel.png');
     await shotElement(page, funnel, funnelOut);

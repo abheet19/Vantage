@@ -83,7 +83,9 @@ function HistoryTable({ project, rows }: { project: ProjectRow; rows: AskRow[] }
                     <td>{row.status ?? '—'}</td>
                     <td className="r">{formatElapsed(row.elapsed_ms)}</td>
                     <td className="r">
-                      <Icon name={isOpen ? 'i-chevd' : 'i-chev'} />
+                      <button type="button" className="table-action" aria-label={`Details for ${row.question}`} aria-expanded={isOpen}>
+                        <Icon name={isOpen ? 'i-chevd' : 'i-chev'} />
+                      </button>
                     </td>
                   </tr>
                   {isOpen && <ExpandedRow row={row} />}
