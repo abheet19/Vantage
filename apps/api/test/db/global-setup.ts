@@ -81,7 +81,9 @@ export default async function setup({ provide }: TestProject): Promise<() => Pro
       user: 'postgres',
       password: 'postgres',
       port,
-      persistent: false,
+      // Let this harness remove the directory after stop(). embedded-postgres deletes immediately when
+      // persistent=false, which intermittently races Windows antivirus/file-handle release with EBUSY.
+      persistent: true,
       initdbFlags: ['--encoding=UTF8', '--locale=C'],
       onLog: () => undefined,
       onError: () => undefined,
@@ -91,7 +93,7 @@ export default async function setup({ provide }: TestProject): Promise<() => Pro
     superUrl = `postgres://postgres:postgres@127.0.0.1:${port}/postgres`;
     stop = async () => {
       await embedded.stop();
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
     };
   }
 

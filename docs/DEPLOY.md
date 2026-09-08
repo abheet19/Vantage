@@ -1,6 +1,6 @@
 # Deploying Vantage
 
-## Current existing app — 2026-09-08
+## Current existing app — 2026-09-09
 
 Routine releases target **`vantage-abheet`** in `sin`; do not run first-install app/database/volume creation again. From this repository, after passing `npm run check` and `npm run docs:check`:
 

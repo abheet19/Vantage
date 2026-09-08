@@ -93,13 +93,15 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   if (!superUrl) {
     const port = await freePort();
     const dir = mkdtempSync(path.join(tmpdir(), 'vantage-e2e-pg-'));
-    const embedded = new EmbeddedPostgres({ databaseDir: dir, user: 'postgres', password: 'postgres', port, persistent: false, initdbFlags: ['--encoding=UTF8', '--locale=C'], onLog: () => undefined, onError: () => undefined });
+    // Let this harness remove the directory after stop(). embedded-postgres deletes immediately when
+    // persistent=false, which intermittently races Windows antivirus/file-handle release with EBUSY.
+    const embedded = new EmbeddedPostgres({ databaseDir: dir, user: 'postgres', password: 'postgres', port, persistent: true, initdbFlags: ['--encoding=UTF8', '--locale=C'], onLog: () => undefined, onError: () => undefined });
     await embedded.initialise();
     await embedded.start();
     superUrl = `postgres://postgres:postgres@127.0.0.1:${port}/postgres`;
     stopPg = async () => {
       await embedded.stop();
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
     };
   }
 
