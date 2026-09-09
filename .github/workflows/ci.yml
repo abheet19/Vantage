@@ -1,7 +1,7 @@
 # Vantage CI — the full gate on Linux against a real PostgreSQL 17, the unit half on Windows, the docs check,
 # and a performance bench.
 #
-# `check` = typecheck → lint (eslint + lint-deps + lint-sql) → unit → integration → coverage gates → web.
+# `check` = typecheck → lint (eslint + lint-deps + lint-sql) → unit → integration → coverage gates → web; the job also audits production dependencies.
 # Integration tests use the service container through VANTAGE_TEST_DB (the harness creates the roles from
 # tools/db-setup.sql and a `vantage_test` database in it). The Windows job proves the domain and contracts
 # with no database, the way an operator's first `npm run test:unit` runs. The bench job runs the LLD §7.4
@@ -50,6 +50,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --legacy-peer-deps
+      # The container ships this tree; fail the release gate if a known high/critical production advisory returns.
+      - run: npm audit --omit=dev --audit-level=high
       # The web e2e (part of `npm run check` → check:web) drives a real browser; Chromium is the only one it needs.
       - run: npx playwright install --with-deps chromium
       - run: npm run check

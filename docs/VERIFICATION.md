@@ -1,10 +1,12 @@
-# Vantage — verification companion, 2026-09-09
+# Vantage — verification companion, 2026-09-10
 
 Auditable product analytics: ingest retry-safe events, inspect funnels/retention/trends/paths, and review the exact typed specification and read-only SQL behind each result.
 
 The Study Pack's release ledger records the exact pushed SHA, Fly image, health check, and post-deploy browser evidence. This source companion records reproducible checks without treating an uncommitted checkout as a release.
 
-**Configured release check:** `npm run check` passed again on Windows on 2026-09-09. It ran 825 distinct cases: 678 API/contracts/integration, 135 web component/helper, and 12 Playwright browser cases. All configured coverage gates passed. `npm run docs:check` separately passed all 10 documents. Count runner-reported cases rather than grepped declarations or property iterations.
+**Configured release check:** `npm run check` passed again on Windows on 2026-09-10. It ran 825 distinct cases: 678 API/contracts/integration, 135 web component/helper, and 12 Playwright browser cases. All configured coverage gates passed. `npm run docs:check` separately passed all 10 documents. Count runner-reported cases rather than grepped declarations or property iterations.
+
+**Production dependency audit:** `npm audit --omit=dev` reports zero vulnerabilities. Nest 12.0.1 pins Multer 2.2.0, so the root lockfile override resolves its shipped transitive dependency to patched Multer 2.3.0; Vantage exposes no multipart/upload controller, the full API/web/browser gate passed with the override, and CI now fails on any known high/critical production advisory.
 
 **Changes verified:** Events, project selection, and history detail actions are keyboard-focusable buttons. At 390 px all ten routes load without page-wide overflow; Ask, theme, transparency, rail, and keyboard event selection remain usable. The Events panels stack and the compact event rows retain their count and first/last-seen dates. The funnel date-range fix remains covered by default-range and invalid-range recovery, and the embedded PostgreSQL harness still cleans up transient Windows handles.
 
