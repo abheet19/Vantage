@@ -13,6 +13,10 @@
 
 :{$PORT:8080} {
 	encode gzip
+	# Vite fingerprints files below /assets. Cache those immutable bytes while index.html keeps
+	# revalidating, so a new release is picked up without carrying stale application code.
+	@immutable path /assets/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
 
 	# The API surface discovered from the controllers: everything under /v1/* (projects, ingest, identify,
 	# funnel, retention, trend, paths, count, ask, asks, events/catalog) plus GET /health. These go to the
