@@ -18,7 +18,7 @@ export function CommandBar(): JSX.Element {
     <header className="cmd glass">
       <div className="proj" title="Switch project">
         <span className="dot" />
-        {current ? current.name : 'No project'}
+        <span className="proj-name">{current ? current.name : 'No project'}</span>
         <Icon name="i-chevd" style={{ color: 'var(--ink-3)' }} />
         <select aria-label="Switch project" value={current?.project_id ?? ''} onChange={(e) => selectProject(e.target.value)} disabled={projects.length === 0}>
           {projects.length === 0 && <option value="">No project</option>}
@@ -34,13 +34,13 @@ export function CommandBar(): JSX.Element {
         {current ? current.timezone : '—'}
       </span>
       <span className="grow" />
-      <button className="toggle" onClick={toggleTheme} aria-pressed={theme === 'light'}>
+      <button className="toggle" onClick={toggleTheme} aria-pressed={theme === 'light'} aria-label="Toggle light theme">
         <Icon name="i-sun" />
-        Light
+        <span className="cmd-label">Light</span>
         <span className="sw" />
       </button>
-      <button className="toggle" onClick={toggleFlat} aria-pressed={flat} title="Disables backdrop blur on glass">
-        Reduce transparency
+      <button className="toggle" onClick={toggleFlat} aria-pressed={flat} aria-label="Reduce transparency" title="Disables backdrop blur on glass">
+        <span className="cmd-label">Reduce transparency</span>
         <span className="sw" />
       </button>
     </header>

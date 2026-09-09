@@ -45,6 +45,7 @@ svg.i { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill
 .screen-head p { color: var(--ink-2); margin-top: 4px; max-width: 64ch; }
 .cols { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; }
 .cols.collapsed { grid-template-columns: minmax(0, 1fr) 48px; }
+.events-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (max-width: 1100px) { .cols, .cols.collapsed { grid-template-columns: 1fr; } }
 
 .glass { position: relative; background: var(--gl-fill); -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); border: 1px solid var(--gl-edge); box-shadow: var(--gl-shadow); }
@@ -162,6 +163,7 @@ table.data tbody tr.sel td { background: color-mix(in oklch, var(--accent) 10%, 
 table.data tr.new td { animation: newrow 1.6s var(--ease); }
 @keyframes newrow { from { background: color-mix(in oklch, var(--bad) 22%, transparent); } }
 table.data code { font-size: var(--fs-0); color: var(--ink); background: var(--raised); padding: 1px 6px; border-radius: 4px; }
+.event-mobile-meta { display: none; }
 .dec { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: var(--fs-0); }
 .dec::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .dec.ran { color: var(--ok); } .dec.refused, .dec.refused_by_database, .dec.error { color: var(--bad); }
@@ -330,3 +332,50 @@ table.heat td:hover, table.heat td:focus-visible { transform: scale(1.08); z-ind
 /* Keep table actions keyboard reachable without changing the data-table surface. */
 .table-action { appearance: none; border: 0; background: transparent; color: inherit; font: inherit; text-align: inherit; cursor: pointer; padding: 3px 0; }
 .table-action:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 2px; }
+
+/* Compact phone layout. The collapsed rail remains a stable navigation strip; expanding it opens
+   the same rail over the content. Wide analytical tables keep their own horizontal scroll instead
+   of widening the whole application, while forms and result cards reflow to one column. */
+@media (max-width: 700px) {
+  .app, .app.rail-open { grid-template-columns: 52px minmax(0, 1fr); grid-template-rows: 56px minmax(0, 1fr) }
+  .rail { width: 52px; padding: 8px 4px }
+  .rail .brand { padding-inline: 6px }
+  .rail button.nav { padding-inline: 12px }
+  .app.rail-open .rail { position: fixed; inset: 0 auto 0 0; width: 220px; z-index: 30 }
+  .cmd { min-width: 0; gap: 2px; padding: 0 6px; overflow: hidden }
+  .cmd .grow { display: none }
+  .cmd .proj { min-width: 0; max-width: 112px; padding-inline: 6px; gap: 5px }
+  .cmd .proj-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+  .cmd .pill { padding-inline: 5px }
+  .cmd .toggle { gap: 4px; padding-inline: 5px }
+  .cmd-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+  .main { min-width: 0; overflow-x: hidden; padding: 16px 12px 64px }
+  .screen { min-width: 0 }
+  .screen-head { align-items: flex-start; margin-bottom: 16px }
+  .panel { min-width: 0; overflow: hidden }
+  .panel > table.data { display: block; overflow-x: auto }
+  .panel > .panel-b { min-width: 0; overflow-x: auto; padding: 12px }
+  .ask { gap: 6px; padding: 6px 6px 6px 10px }
+  .ask .q { min-width: 0; font-size: var(--fs-1) }
+  .ask .go { height: 36px; padding-inline: 10px }
+  .chips { display: grid; gap: 6px; padding: 8px }
+  .chips .ex { width: 100%; height: auto; min-height: 36px; padding: 7px 10px; white-space: normal; line-height: 1.3; text-align: left }
+  .builder { grid-template-columns: 1fr; gap: 12px; padding: 12px }
+  .steps { padding: 0 12px 12px }
+  .step { grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; padding-inline: 8px }
+  .seg { width: 100% }
+  .seg button { flex: 1; padding-inline: 6px }
+  .funnel { padding: 12px }
+  .frow { grid-template-columns: 1fr; gap: 8px; height: auto; padding-block: 6px }
+  .frow .nums { text-align: left }
+  .kpis, .resp { grid-template-columns: 1fr; gap: 8px }
+  .side { position: static }
+  .tool { grid-template-columns: minmax(0, 1fr) auto; padding-inline: 12px }
+  .tool code, .tool .d { overflow-wrap: anywhere }
+  .pcard dl { grid-template-columns: 1fr; gap: 3px }
+  .pcard dd { margin-bottom: 8px; overflow-wrap: anywhere }
+  .events-table th:nth-child(n + 3), .events-table td:nth-child(n + 3) { display: none }
+  .events-table { display: table !important; table-layout: fixed }
+  .events-table th:nth-child(2), .events-table td:nth-child(2) { width: 72px }
+  .event-mobile-meta { display: block; margin-top: 5px; color: var(--ink-3); font-size: 11px; line-height: 1.35; white-space: normal }
+}

@@ -90,16 +90,16 @@ docker compose exec app sh -c 'node apps/api/dist/fixture-load.js'
 # → fixture loaded into project <PROJECT_ID> (Asia/Kolkata): 1046 submitted, 1045 accepted, 1 duplicates, 1 identify
 ```
 
-If you explicitly configured `VANTAGE_QUERY_TOKEN`, query with that bearer token; without it the API returns 401. With the default unset token, local reads are open:
+The default Compose setup leaves `VANTAGE_QUERY_TOKEN` unset, so local reads are open. If you explicitly set the token, the same request without a bearer returns `401 INVALID_QUERY_TOKEN` and the request with the shared bearer succeeds:
 
 ```sh
 PID=<PROJECT_ID>
 BODY='{"kind":"funnel","project":"'$PID'","range":{"from":"2026-08-01","to":"2026-08-31"},"steps":[{"event":"signup"},{"event":"create_project"},{"event":"invite_teammate"}]}'
 
-# no token → 401 INVALID_QUERY_TOKEN
+# default (VANTAGE_QUERY_TOKEN unset) → 200
 curl -s -X POST http://localhost:8080/v1/funnel -H 'content-type: application/json' -d "$BODY"
 
-# with the shared read token → 200, persons [13, 8, 4] (matches fixtures/august.expected.md, median 91 500 s)
+# protected mode (VANTAGE_QUERY_TOKEN set) → supply that shared bearer for 200
 curl -s -X POST http://localhost:8080/v1/funnel \
   -H 'content-type: application/json' \
   -H 'Authorization: Bearer local-dev-query-token-change-me' \

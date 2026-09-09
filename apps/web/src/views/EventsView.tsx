@@ -23,7 +23,7 @@ function Explorer({ project, catalog }: { project: ProjectRow; catalog: EventCat
 
   return (
     <>
-      <div className="cols" style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
+      <div className="cols events-cols">
         <div className="panel">
           <div className="panel-h">
             <h2>Event names</h2>
@@ -33,7 +33,7 @@ function Explorer({ project, catalog }: { project: ProjectRow; catalog: EventCat
             <span className="grow" />
             <span className="small faint">select an event for its properties</span>
           </div>
-          <table className="data">
+          <table className="data events-table">
             <thead>
               <tr>
                 <th>Event</th>
@@ -47,6 +47,9 @@ function Explorer({ project, catalog }: { project: ProjectRow; catalog: EventCat
                 <tr key={e.event} className={`clickable${e.event === selected ? ' sel' : ''}`} onClick={() => setSelected(e.event)}>
                   <td>
                     <button type="button" className="table-action" aria-pressed={e.event === selected}><code>{e.event}</code></button>
+                    <span className="event-mobile-meta">
+                      {formatDateTime(e.first_seen, catalog.timezone)} → {formatDateTime(e.last_seen, catalog.timezone)}
+                    </span>
                   </td>
                   <td className="r">{formatCount(e.count)}</td>
                   <td className="r">{formatDateTime(e.first_seen, catalog.timezone)}</td>

@@ -53,7 +53,7 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 <div align="center"><sub>The security money-shot: the model fills a typed spec (violet), the compiler turns it into a <b>parameterised</b> <code>SELECT</code> (<code>$1…$7</code>, no interpolation), and it runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>. A current local production-build capture — reproduce it with <code>node tools/capture-hero.mjs</code>.</sub></div>
 
 > [!TIP]
-> **Current verification (9 September 2026):** [executed workflows and limits](docs/VERIFICATION.md) · [setup/deploy operations](docs/DEPLOY.md). Events, project selection, and history detail actions are actual keyboard-focusable buttons. The funnel date-range fix was independently verified with both the default range and invalid-range recovery. Disposable PostgreSQL test clusters now clean up reliably on Windows after the full gate.
+> **Current verification (9 September 2026):** [executed workflows and limits](docs/VERIFICATION.md) · [setup/deploy operations](docs/DEPLOY.md). Events, project selection, and history detail actions are keyboard-focusable buttons. The phone layout now keeps every route and top-bar control inside a 390 px viewport; Events stacks its panels and preserves first/last-seen dates in each compact row. The full gate includes a real-browser regression for that flow.
 >
 > The two README PNG stills were refreshed from the current real **local production build** and isolated data. Existing GIFs are earlier recordings, retained for the longer walkthrough; they were not re-recorded in this pass.
 
@@ -316,8 +316,8 @@ reflects those runs.
 
 ## ∅ What it does not do yet
 
-Everything. And, by design, ever ([01-DESIGN.md §7](docs/01-DESIGN.md#7-what-i-am-not-building)):
-authentication or per-user access · multi-tenancy between operators · a chart library or saved
+The deliberate limits are listed in [01-DESIGN.md §7](docs/01-DESIGN.md#7-what-i-am-not-building). The public deployment can require shared read/admin bearer tokens, but it does not implement per-user authentication, authorization, or operator isolation:
+multi-tenancy between operators · a chart library or saved
 dashboards · real-time streaming · alerting, anomaly detection, A/B analysis · free-text SQL from
 the model or from MCP clients · session replay or autocapture · partitioning and pre-aggregation
 (the named path once `EXPLAIN` says so) · anything that belongs to another project.

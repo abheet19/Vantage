@@ -2,13 +2,13 @@
 
 Auditable product analytics: ingest retry-safe events, inspect funnels/retention/trends/paths, and review the exact typed specification and read-only SQL behind each result.
 
-The exact deployed commit and live smoke results are recorded in the Study Pack's `08_TESTING_ARTIFACT.md` release ledger.
+The Study Pack's release ledger records the exact pushed SHA, Fly image, health check, and post-deploy browser evidence. This source companion records reproducible checks without treating an uncommitted checkout as a release.
 
-**Configured release check:** `npm run check` passed again on Windows on 2026-09-09. It ran 824 distinct cases: 678 API/contracts/integration, 135 web component/helper, and 11 Playwright browser cases. All configured coverage gates passed. `npm run docs:check` separately passed all 10 documents. Count runner-reported cases rather than grepped declarations or property iterations.
+**Configured release check:** `npm run check` passed again on Windows on 2026-09-09. It ran 825 distinct cases: 678 API/contracts/integration, 135 web component/helper, and 12 Playwright browser cases. All configured coverage gates passed. `npm run docs:check` separately passed all 10 documents. Count runner-reported cases rather than grepped declarations or property iterations.
 
-**Changes verified:** Events, project selection, and history detail actions are actual keyboard-focusable buttons. The funnel date-range fix was independently verified with both the default range and invalid-range recovery. Embedded PostgreSQL teardown now leaves deletion to the harness and retries transient Windows handle contention.
+**Changes verified:** Events, project selection, and history detail actions are keyboard-focusable buttons. At 390 px all ten routes load without page-wide overflow; Ask, theme, transparency, rail, and keyboard event selection remain usable. The Events panels stack and the compact event rows retain their count and first/last-seen dates. The funnel date-range fix remains covered by default-range and invalid-range recovery, and the embedded PostgreSQL harness still cleans up transient Windows handles.
 
-**Independent exploration:** 22 passed scenarios, zero page errors, freshly repeated at `2026-09-08T22:28:13.610Z` (2026-09-09 in Asia/Calcutta). Source script and raw result files are in the local workspace under `job-search-context/project-verification-2026-09-08/Vantage/`; that directory name records when the harness was created, while `exploration.json.date` records this run.
+**Independent exploration:** 22 desktop scenarios passed with zero page errors at `2026-09-09T16:43:45.273Z`; a separate phone audit passed 24 checks across all ten routes at 390 px with zero page errors at `2026-09-09T17:04:58.837Z`. Source scripts, screenshots, and raw JSON remain in the local verification workspace; those files are evidence, not part of the product bundle.
 
 ## How to read the evidence
 
