@@ -29,13 +29,13 @@ docker build -t vantage-local .
 
 ## Retained evidence for the current candidate
 
-- `verification-work/vantage-final-check.log` SHA-256 `EC304C79…E8C65`: 825 distinct cases, all passed.
+- Exact `82d537a...` evidence in `verification-work/vantage-glass-perf-20260910/VANTAGE_GLASS_FIX_EVIDENCE.md`: 678 API/contracts/integration + 135 web tests and 12/12 PostgreSQL/Chromium workflows passed.
 - `docs/VERIFICATION.md`: desktop/mobile exploration, bounded Lighthouse, dependency resolution, and explicit harness limits.
-- Pre-release baseline: Fly v17 mapped to `8008656...` and used `VANTAGE_LLM=none`; re-check the current release before making a live claim.
+- Current boundary: Fly v18/public `main` are `1b721fc...` and use `VANTAGE_LLM=none`; verified lazy-load candidate `82d537a...` is the first local commit after public `main`, followed by this documentation update. Both local commits are unpublished. The anonymous health response is 200 but does not expose a release SHA.
 
 ## Release sequence
 
-1. Review the ahead commit and five-path visual delta; freeze one commit.
+1. Review local lazy-load candidate `82d537a...`; freeze it with the accompanying documentation update.
 2. Run docs/check/bench/build/image and migration rehearsal at that commit.
 3. Confirm secret names and backup/restore plan without exposing values.
 4. Deploy with approval; record source, CI, image, release, machine, runtime mode, post-deploy flows, and rollback image.

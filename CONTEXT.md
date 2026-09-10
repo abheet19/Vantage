@@ -1,6 +1,6 @@
 # Vantage — current implementation context
 
-> Evidence snapshot prepared 10 September 2026 IST. Canonical repository: `D:\Code\Vantage`. The release candidate includes the dependency-audit fix and the current five-file visual-branding change. Use `git rev-parse HEAD` and the release evidence for the exact tested and deployed commit.
+> Evidence snapshot updated 10 September 2026 IST. Canonical repository: `D:\Code\Vantage`; local `main` carries lazy-load candidate `82d537a42bcdc472826dd1fcafca58dd004c198c` plus this documentation update and is two commits ahead of public `main` and the verified Fly v18 release at `1b721fc1982bd03e4ac01527c3cfb635ada2fc39`. A current anonymous `/health` request returned 200 but exposes no release SHA. The local lazy-load candidate is not pushed or deployed.
 >
 > This is the short, AI-readable map. Current source and executable tests win if an older design note disagrees. A dirty working tree is a candidate, not a release; a configured URL is not proof that the candidate is deployed.
 
@@ -66,16 +66,16 @@ Shared Zod contracts connect the React client, Nest API, compiler, and MCP surfa
 
 Run `npm run docs:check`, `npm run check`, `npm run bench`, `npm run build`, and `npm run web:build`; build/smoke Docker for a release. CI runs type/lint/boundary, API/contracts/integration, web/browser, and production dependency gates. Release automation can deploy Fly from a successful `main` CI when `FLY_API_TOKEN` exists; the guide's manual path uses `fly deploy --app vantage-abheet --remote-only --depot=false`. Required database/query/admin secret names are documented without values.
 
-The pre-release Fly v17 baseline mapped to source `8008656...` and reported `VANTAGE_LLM=none`. For every release, run migrations and gates at one commit, then record source/image/release/machine plus post-deploy health, auth refusal, Ask/spec/SQL/result, route, MCP-boundary, and rollback evidence.
+Fly v18 is verified at `1b721fc...` and reports the deterministic `VANTAGE_LLM=none` boundary. Local `82d537a...` lazy-loads nine secondary web routes and passed the named local candidate gates, but it is not published or deployed. For every release, run migrations and gates at one commit, then record source/image/release/machine plus post-deploy health, auth refusal, Ask/spec/SQL/result, route, MCP-boundary, and rollback evidence.
 
 ## Current measured evidence
 
 | Result | Evidence |
 | --- | --- |
-| 825 distinct cases passed: 678 API/contracts/integration + 135 web + 12 Playwright; all coverage gates passed | `verification-work\vantage-final-check.log; D:\Code\Vantage\docs\VERIFICATION.md` |
+| Exact `82d537a...` gate passed: 678 API/contracts/integration + 135 web + 12 PostgreSQL/Chromium workflows; all coverage gates passed | `verification-work\vantage-glass-perf-20260910\VANTAGE_GLASS_FIX_EVIDENCE.md` |
 | 22 independent desktop scenarios + 24 phone checks, zero page errors | `D:\Code\Vantage\docs\VERIFICATION.md` |
 | Bounded local Lighthouse: 99 performance, 100 accessibility, 100 SEO, 1.7 s LCP, 0 CLS | `D:\Code\Vantage\docs\VERIFICATION.md` |
-| Pre-release Fly v17 used the deterministic no-model adapter | `D:\Work\Vantage Study Pack\08_TESTING_ARTIFACT.md` |
+| Fly v18/public `main` are `1b721fc...`; verified local lazy-load candidate `82d537a...` is unpublished | `verification-work\portfolio-release-20260910\PORTFOLIO_RELEASE_DASHBOARD.md; D:\Work\Vantage Study Pack\08_TESTING_ARTIFACT.md` |
 
 The evidence above belongs to the named local working-tree snapshot unless it explicitly names a release/image. It does not become live evidence merely because a deployment configuration exists.
 
