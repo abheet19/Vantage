@@ -1,9 +1,9 @@
-import type { AskResponse, FunnelSpec, InsightResult, PathsSpec, QuerySpec, TrendSpec } from '@vantage/contracts';
+import type { AskResponse, CountSpec, FunnelSpec, InsightResult, PathsSpec, QuerySpec, RetentionSpec, TrendSpec } from '@vantage/contracts';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QueryCard } from '../src/components/QueryCard.js';
-import { funnelResult, pathsResult, timedOutFunnel, trendResult } from './fixtures.js';
+import { countResult, funnelResult, pathsResult, retentionResult, timedOutFunnel, trendResult } from './fixtures.js';
 
 const SPEC: FunnelSpec = {
   kind: 'funnel',
@@ -59,6 +59,25 @@ const PATHS_SPEC: PathsSpec = {
   start: 'signup',
   steps: 3,
   session_gap_minutes: 30,
+};
+
+const COUNT_SPEC: CountSpec = {
+  kind: 'count',
+  project: SPEC.project,
+  range: SPEC.range,
+  where: [],
+  event: { event: 'signup', where: [] },
+};
+
+const RETENTION_SPEC: RetentionSpec = {
+  kind: 'retention',
+  project: SPEC.project,
+  range: SPEC.range,
+  where: [],
+  start: { event: 'signup', where: [] },
+  unit: 'week',
+  periods: 3,
+  mode: 'on',
 };
 
 afterEach(() => {
@@ -133,6 +152,8 @@ describe('QueryCard — the ran case', () => {
   });
 
   it.each([
+    { name: 'count', route: '/v1/count', spec: COUNT_SPEC, result: countResult(13, 13) },
+    { name: 'retention', route: '/v1/retention', spec: RETENTION_SPEC, result: retentionResult(1) },
     { name: 'trend', route: '/v1/trend', spec: TREND_SPEC, result: trendResult() },
     { name: 'paths', route: '/v1/paths', spec: PATHS_SPEC, result: pathsResult() },
   ])('re-runs an edited $name spec through its matching endpoint', async ({ route, spec, result }) => {

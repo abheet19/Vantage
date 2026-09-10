@@ -73,7 +73,7 @@ For every release, run migrations and gates at one commit, then record source/im
 
 | Result | Evidence |
 | --- | --- |
-| 832 distinct cases passed: 680 API/contracts/integration + 137 web + 15 PostgreSQL/Chromium workflows; all coverage gates passed | `D:\Code\Vantage\docs\VERIFICATION.md` |
+| 834 distinct cases passed: 680 API/contracts/integration + 139 web + 15 PostgreSQL/Chromium workflows; all coverage gates passed | `D:\Code\Vantage\docs\VERIFICATION.md` |
 | Every route/global control plus analytics, disclosure, table, refresh, copy and 320 px semantic workflows passed with zero page errors | `apps\web\e2e\release-cta.spec.ts; D:\Code\Vantage\docs\VERIFICATION.md` |
 | Bounded local Lighthouse: 99 performance, 100 accessibility, 100 SEO, 1.7 s LCP, 0 CLS | `D:\Code\Vantage\docs\VERIFICATION.md` |
 | Exact public commit, Fly release/image, `/health.release_sha`, and live smoke receipt | `verification-work\portfolio-release-20260910\VANTAGE_RELEASE_SIGNOFF.md; D:\Work\Vantage Study Pack\08_TESTING_ARTIFACT.md` |

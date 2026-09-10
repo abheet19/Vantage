@@ -55,7 +55,7 @@ release build -> VANTAGE_RELEASE_SHA -> /health.release_sha
 
 ## Verification baseline
 
-- `npm run check`: 832 distinct cases—680 API/contracts/integration, 137 web, 15 production PostgreSQL/Chromium workflows—with all coverage floors passed.
+- `npm run check`: 834 distinct cases—680 API/contracts/integration, 139 web, 15 production PostgreSQL/Chromium workflows—with all coverage floors passed.
 - `npm run bench`: three 200k-event budget assertions passed. Thresholds are funnel 800 ms, retention 1,200 ms, paths 1,200 ms; calibrated reference measurements are 216/319/633 ms.
 - `npm audit --omit=dev --audit-level=high`: zero vulnerabilities.
 - Bounded prior local Lighthouse: performance 99, accessibility 100, SEO 100, LCP 1.7 s, TBT 0 ms, CLS 0.
