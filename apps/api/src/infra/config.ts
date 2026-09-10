@@ -72,6 +72,8 @@ export interface ApiConfig {
    * INDEPENDENT of both the read token and the per-project ingest key.
    */
   adminToken: string | undefined;
+  /** Exact source commit embedded by a release build; absent for ordinary local runs. */
+  releaseSha: string | undefined;
 }
 
 /** `apps/api/migrations`, resolved from this file so it is right whether run from `src` (vitest) or `dist` (node). */
@@ -114,6 +116,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
   if (adminToken !== undefined && adminToken.length < 16) {
     throw new Error('VANTAGE_ADMIN_TOKEN must be at least 16 characters when set (leave it unset to keep the project-admin write routes open, loopback-only)');
   }
+  const releaseShaRaw = env['VANTAGE_RELEASE_SHA'];
+  const releaseSha = releaseShaRaw && releaseShaRaw.length > 0 ? releaseShaRaw : undefined;
+  if (releaseSha !== undefined && !/^[0-9a-f]{40}$/.test(releaseSha)) {
+    throw new Error('VANTAGE_RELEASE_SHA must be a lowercase 40-character Git commit when set');
+  }
   return {
     rwUrl: env['VANTAGE_DATABASE_URL_RW'] as string,
     roUrl: env['VANTAGE_DATABASE_URL_RO'] as string,
@@ -131,6 +138,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ApiConfig {
     },
     queryToken,
     adminToken,
+    releaseSha,
   };
 }
 

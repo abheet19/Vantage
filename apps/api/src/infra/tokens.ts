@@ -33,3 +33,5 @@ export const QUERY_TOKEN = 'QUERY_TOKEN';
  * `QUERY_TOKEN` and the per-project ingest key `ApiKeyGuard` checks — all three mechanisms are separate.
  */
 export const ADMIN_TOKEN = 'ADMIN_TOKEN';
+/** Optional 40-character source commit embedded by the release build; returned by `/health` for provenance. */
+export const RELEASE_SHA = 'RELEASE_SHA';

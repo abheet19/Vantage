@@ -21,7 +21,7 @@ async function main(): Promise<void> {
   const logger = new Logger('vantage');
   const config = loadConfig();
   const app = await NestFactory.create<NestExpressApplication>(
-    AppModule.forRoot({ rwUrl: config.rwUrl, roUrl: config.roUrl, ownerUrl: config.ownerUrl, migrationRole: config.migrationRole, migrationsDir: config.migrationsDir }, config.llm, config.queryToken, config.adminToken),
+    AppModule.forRoot({ rwUrl: config.rwUrl, roUrl: config.roUrl, ownerUrl: config.ownerUrl, migrationRole: config.migrationRole, migrationsDir: config.migrationsDir }, config.llm, config.queryToken, config.adminToken, config.releaseSha),
     { bodyParser: false },
   );
   configureApp(app);

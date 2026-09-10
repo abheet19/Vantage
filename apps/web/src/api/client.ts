@@ -75,10 +75,13 @@ export const HealthReport = z
     pools: z.object({ rw: z.enum(['up', 'down']), ro: z.enum(['up', 'down']) }),
     migration: z.object({ version: z.number().int() }).nullable().catch(null),
     self_test: z.object({ ok: z.boolean() }).nullable().catch(null),
+    // A rolling deployment may briefly pair the new web bundle with the previous API. Treat an omitted
+    // receipt as a local/legacy build; a malformed non-empty receipt still collapses safely to null.
+    release_sha: z.string().regex(/^[0-9a-f]{40}$/).nullable().default(null).catch(null),
     code: z.string().optional(),
     message: z.string().optional(),
   })
-  .catch({ ok: false, pools: { rw: 'down', ro: 'down' }, migration: null, self_test: null });
+  .catch({ ok: false, pools: { rw: 'down', ro: 'down' }, migration: null, self_test: null, release_sha: null });
 export type HealthReport = z.infer<typeof HealthReport>;
 
 async function readBody(res: Response): Promise<string> {

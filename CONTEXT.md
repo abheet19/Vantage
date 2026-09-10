@@ -1,6 +1,6 @@
 # Vantage — current implementation context
 
-> Evidence snapshot updated 10 September 2026 IST. Canonical repository: `D:\Code\Vantage`; local `main` carries lazy-load candidate `82d537a42bcdc472826dd1fcafca58dd004c198c` plus this documentation update and is two commits ahead of public `main` and the verified Fly v18 release at `1b721fc1982bd03e4ac01527c3cfb635ada2fc39`. A current anonymous `/health` request returned 200 but exposes no release SHA. The local lazy-load candidate is not pushed or deployed.
+> Evidence snapshot updated 10 September 2026 IST. Canonical repository: `D:\Code\Vantage`. The release closure fixes editable Ask dispatch for Trend and Paths, expands the browser audit to every discoverable control at desktop and 320 px, and embeds an exact source receipt in release builds. The durable release ledger lives outside the Git tree under `verification-work\portfolio-release-20260910`; accepting a deployment requires its live `/health.release_sha` to equal public `origin/main` and the reviewed local commit.
 >
 > This is the short, AI-readable map. Current source and executable tests win if an older design note disagrees. A dirty working tree is a candidate, not a release; a configured URL is not proof that the candidate is deployed.
 
@@ -32,6 +32,7 @@ Shared Zod contracts connect the React client, Nest API, compiler, and MCP surfa
 | `apps/web/src` | ten-route React UI, project state, forms, SQL/spec/result panels, and error states |
 | `apps/api/test; apps/web/test; apps/web/e2e` | unit, integration, component, and real-browser contracts |
 | `docs/VERIFICATION.md; docs/DEPLOY.md` | current local evidence and release mapping/operations |
+| `MEMORY.md` | durable AI handoff, decisions, workflow map, limits, and verification order |
 
 ## Invariants and trust boundaries
 
@@ -49,7 +50,7 @@ Shared Zod contracts connect the React client, Nest API, compiler, and MCP surfa
 - Configure and run funnel, retention, trend, path, and count analyses with time/project boundaries and result/empty/error states.
 - Browse Events and keyboard-select event details/properties; use all ten keyboard routes: Ask, Funnel, Retention, Paths, Trend, Events, History, Projects, MCP, Health.
 - Exercise real stdio MCP protocol tests separately from the illustrative MCP page.
-- Verify all routes and top-bar controls at 390 px without page-level overflow.
+- Verify all routes and top-bar controls at 320 px without page-level overflow or unnamed visible controls.
 
 ## Concepts this project teaches
 
@@ -64,18 +65,18 @@ Shared Zod contracts connect the React client, Nest API, compiler, and MCP surfa
 
 ## CI, packaging, deployment, and rollback
 
-Run `npm run docs:check`, `npm run check`, `npm run bench`, `npm run build`, and `npm run web:build`; build/smoke Docker for a release. CI runs type/lint/boundary, API/contracts/integration, web/browser, and production dependency gates. Release automation can deploy Fly from a successful `main` CI when `FLY_API_TOKEN` exists; the guide's manual path uses `fly deploy --app vantage-abheet --remote-only --depot=false`. Required database/query/admin secret names are documented without values.
+Run `npm run docs:check`, `npm run check`, `npm run bench`, `npm run build`, and `npm run web:build`; build/smoke the release container. CI runs type/lint/boundary, API/contracts/integration, web/browser, production dependency, and benchmark gates. Release automation deploys only after successful `main` CI when `FLY_API_TOKEN` exists. Both automated and manual builds pass the exact commit as `VANTAGE_RELEASE_SHA`; the manual path is `fly deploy --app vantage-abheet --remote-only --depot=false --build-arg VANTAGE_RELEASE_SHA=<40-char HEAD>`. Required database/query/admin secret names are documented without values.
 
-Fly v18 is verified at `1b721fc...` and reports the deterministic `VANTAGE_LLM=none` boundary. Local `82d537a...` lazy-loads nine secondary web routes and passed the named local candidate gates, but it is not published or deployed. For every release, run migrations and gates at one commit, then record source/image/release/machine plus post-deploy health, auth refusal, Ask/spec/SQL/result, route, MCP-boundary, and rollback evidence.
+For every release, run migrations and gates at one commit, then record source/image/release/machine plus post-deploy health, auth refusal, Ask/spec/SQL/result, route, MCP-boundary, and rollback evidence. `/health.release_sha` is null for an ordinary local process and the exact lowercase 40-character commit for a release build. The public demo uses deterministic `VANTAGE_LLM=none`; a successful canned Ask remains evidence of the boundary and UI flow, not arbitrary model quality.
 
 ## Current measured evidence
 
 | Result | Evidence |
 | --- | --- |
-| Exact `82d537a...` gate passed: 678 API/contracts/integration + 135 web + 12 PostgreSQL/Chromium workflows; all coverage gates passed | `verification-work\vantage-glass-perf-20260910\VANTAGE_GLASS_FIX_EVIDENCE.md` |
-| 22 independent desktop scenarios + 24 phone checks, zero page errors | `D:\Code\Vantage\docs\VERIFICATION.md` |
+| 832 distinct cases passed: 680 API/contracts/integration + 137 web + 15 PostgreSQL/Chromium workflows; all coverage gates passed | `D:\Code\Vantage\docs\VERIFICATION.md` |
+| Every route/global control plus analytics, disclosure, table, refresh, copy and 320 px semantic workflows passed with zero page errors | `apps\web\e2e\release-cta.spec.ts; D:\Code\Vantage\docs\VERIFICATION.md` |
 | Bounded local Lighthouse: 99 performance, 100 accessibility, 100 SEO, 1.7 s LCP, 0 CLS | `D:\Code\Vantage\docs\VERIFICATION.md` |
-| Fly v18/public `main` are `1b721fc...`; verified local lazy-load candidate `82d537a...` is unpublished | `verification-work\portfolio-release-20260910\PORTFOLIO_RELEASE_DASHBOARD.md; D:\Work\Vantage Study Pack\08_TESTING_ARTIFACT.md` |
+| Exact public commit, Fly release/image, `/health.release_sha`, and live smoke receipt | `verification-work\portfolio-release-20260910\VANTAGE_RELEASE_SIGNOFF.md; D:\Work\Vantage Study Pack\08_TESTING_ARTIFACT.md` |
 
 The evidence above belongs to the named local working-tree snapshot unless it explicitly names a release/image. It does not become live evidence merely because a deployment configuration exists.
 
@@ -89,14 +90,15 @@ The evidence above belongs to the named local working-tree snapshot unless it ex
 
 ## Reading order
 
-1. `CONTEXT.md` — current trust and release boundary
-2. `D:\Work\Vantage Study Pack\01_Vantage_Concepts_From_Zero.md` — analytics, SQL, API, and security vocabulary
-3. `docs/01-DESIGN.md; docs/02-LLD.md` — domain semantics, boundaries, and implementation slices
-4. `packages/contracts; apps/api/src/domain/compile` — typed language and compiler
-5. `apps/api/src/modules; apps/api/src/infra; apps/api/migrations` — HTTP, storage, roles, and model boundary
-6. `apps/web/src; packages MCP entry points` — user and tool surfaces
-7. `D:\Work\Vantage Study Pack\03_Vantage_System_Design_DSA_TypeScript_Walkthrough.md` — system design and code-to-deploy
-8. `docs/SANITY.md; docs/VERIFICATION.md; docs/DEPLOY.md` — run and release evidence
+1. `MEMORY.md` — durable AI handoff and current decisions
+2. `CONTEXT.md` — trust and release boundary
+3. `D:\Work\Vantage Study Pack\01_Vantage_Concepts_From_Zero.md` — analytics, SQL, API, and security vocabulary
+4. `docs/01-DESIGN.md; docs/02-LLD.md` — domain semantics, boundaries, and implementation slices
+5. `packages/contracts; apps/api/src/domain/compile` — typed language and compiler
+6. `apps/api/src/modules; apps/api/src/infra; apps/api/migrations` — HTTP, storage, roles, and model boundary
+7. `apps/web/src; packages MCP entry points` — user and tool surfaces
+8. `D:\Work\Vantage Study Pack\03_Vantage_System_Design_DSA_TypeScript_Walkthrough.md` — system design and code-to-deploy
+9. `docs/SANITY.md; docs/VERIFICATION.md; docs/DEPLOY.md` — run and release evidence
 
 Use `docs/SANITY.md` in the repository, or `09_SANITY_CHECK.md` in the Study Pack, before claiming that a new change works.
 

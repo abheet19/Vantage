@@ -16,13 +16,15 @@ import pg from 'pg';
 import { DatabaseLifecycle } from '../../infra/database.module.js';
 import type { MigrationStatus } from '../../infra/migration-runner.js';
 import type { SelfTestResult } from '../../infra/self-test.js';
-import { PG_RO, PG_RW } from '../../infra/tokens.js';
+import { PG_RO, PG_RW, RELEASE_SHA } from '../../infra/tokens.js';
 
 export interface HealthBody {
   ok: boolean;
   pools: { rw: 'up' | 'down'; ro: 'up' | 'down' };
   migration: MigrationStatus | null;
   self_test: SelfTestResult | null;
+  /** Exact source commit for release builds; null for an ordinary local process. */
+  release_sha: string | null;
 }
 
 async function probe(pool: pg.Pool): Promise<string | null> {
@@ -40,6 +42,7 @@ export class HealthController {
     @Inject(PG_RW) private readonly rw: pg.Pool,
     @Inject(PG_RO) private readonly ro: pg.Pool,
     @Inject(DatabaseLifecycle) private readonly lifecycle: DatabaseLifecycle,
+    @Inject(RELEASE_SHA) private readonly releaseSha: string | undefined,
   ) {}
 
   @Get()
@@ -50,6 +53,7 @@ export class HealthController {
       pools: { rw: rwErr === null ? 'up' : 'down', ro: roErr === null ? 'up' : 'down' },
       migration: this.lifecycle.migration,
       self_test: this.lifecycle.selfTest,
+      release_sha: this.releaseSha ?? null,
     };
     if (!body.ok) {
       const message = [rwErr && `rw: ${rwErr}`, roErr && `ro: ${roErr}`].filter(Boolean).join('; ') || 'boot self-test did not pass';

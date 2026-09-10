@@ -78,4 +78,12 @@ describe('loadConfig', () => {
     expect(cfg.queryToken).toBe('a-real-32-char-shared-read-token');
     expect(cfg.adminToken).toBe('a-real-32-char-shared-admin-tokn');
   });
+
+  it('accepts only an exact lowercase commit as release provenance', () => {
+    const sha = '0123456789abcdef0123456789abcdef01234567';
+    expect(loadConfig(base).releaseSha).toBeUndefined();
+    expect(loadConfig({ ...base, VANTAGE_RELEASE_SHA: sha }).releaseSha).toBe(sha);
+    expect(() => loadConfig({ ...base, VANTAGE_RELEASE_SHA: '0123456' })).toThrow(/VANTAGE_RELEASE_SHA/);
+    expect(() => loadConfig({ ...base, VANTAGE_RELEASE_SHA: sha.toUpperCase() })).toThrow(/VANTAGE_RELEASE_SHA/);
+  });
 });

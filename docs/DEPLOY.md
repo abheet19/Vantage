@@ -1,17 +1,21 @@
 # Deploying Vantage
 
-## Current existing app — 2026-09-09
+## Current existing app — 2026-09-10
 
 Routine releases target **`vantage-abheet`** in `sin`; do not run first-install app/database/volume creation again. From this repository, after passing `npm run check` and `npm run docs:check`:
 
 ```powershell
-fly deploy --app vantage-abheet --remote-only --depot=false
+$releaseSha = git rev-parse HEAD
+if ($releaseSha -notmatch '^[0-9a-f]{40}$') { throw 'Expected a full Git commit' }
+fly deploy --app vantage-abheet --remote-only --depot=false --build-arg "VANTAGE_RELEASE_SHA=$releaseSha"
 fly status --app vantage-abheet
 fly checks list --app vantage-abheet
 fly logs --app vantage-abheet --no-tail
+$health = Invoke-RestMethod 'https://vantage-abheet.fly.dev/health'
+if (-not $health.ok -or $health.release_sha -ne $releaseSha) { throw 'Live release does not match reviewed source' }
 ```
 
-The commands below this section describe bootstrap/self-hosting. GitHub release automation waits for successful CI on main and uses its exact `head_sha`; it does not deploy every unvalidated push. The pre-commit hook runs lint/typecheck; the full suite is a separate local/CI gate. See [current verification](VERIFICATION.md) for executed scope.
+The commands below this section describe bootstrap/self-hosting. GitHub release automation waits for successful CI on main, builds its exact `head_sha`, and passes that SHA into the container. It does not deploy every unvalidated push. `/health.release_sha` is the executable receipt; compare it with public `origin/main`, not a mutable image tag. The pre-commit hook runs lint/typecheck; the full suite is a separate local/CI gate. See [current verification](VERIFICATION.md) for executed scope.
 
 For rollback, record the previous image reference before releasing and use `fly deploy --app vantage-abheet --image <previous-image-reference>` if needed. Image rollback does not roll back persistent data/migrations. That recovery command was documented, not exercised. `fly secrets list` reveals names only; it cannot retrieve secret values.
 
@@ -169,7 +173,7 @@ into the image.
 5. **Deploy**:
 
    ```sh
-   fly deploy
+   fly deploy --build-arg "VANTAGE_RELEASE_SHA=$(git rev-parse HEAD)"
    ```
 
    Then browse `https://vantage-abheet.fly.dev/` and curl a funnel exactly as above, against your Fly URL with the

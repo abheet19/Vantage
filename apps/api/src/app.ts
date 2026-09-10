@@ -38,10 +38,10 @@ export const DEFAULT_LLM: LlmConfig = { adapter: 'none', ollamaModel: OLLAMA_DEF
 
 @Module({})
 export class AppModule {
-  static forRoot(db: DatabaseOptions, llm: LlmConfig = DEFAULT_LLM, queryToken?: string, adminToken?: string): DynamicModule {
+  static forRoot(db: DatabaseOptions, llm: LlmConfig = DEFAULT_LLM, queryToken?: string, adminToken?: string, releaseSha?: string): DynamicModule {
     return {
       module: AppModule,
-      imports: [AuthModule.forRoot(queryToken, adminToken), DatabaseModule.forRoot(db), ProjectsModule, IdentityModule, IngestModule, InsightsModule, EventsModule, AuditModule, AskModule.forRoot(llm), HealthModule],
+      imports: [AuthModule.forRoot(queryToken, adminToken), DatabaseModule.forRoot(db), ProjectsModule, IdentityModule, IngestModule, InsightsModule, EventsModule, AuditModule, AskModule.forRoot(llm), HealthModule.forRoot(releaseSha)],
     };
   }
 }

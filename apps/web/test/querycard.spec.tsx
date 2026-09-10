@@ -1,9 +1,9 @@
-import type { AskResponse, FunnelSpec } from '@vantage/contracts';
+import type { AskResponse, FunnelSpec, InsightResult, PathsSpec, QuerySpec, TrendSpec } from '@vantage/contracts';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { QueryCard } from '../src/components/QueryCard.js';
-import { funnelResult, timedOutFunnel } from './fixtures.js';
+import { funnelResult, pathsResult, timedOutFunnel, trendResult } from './fixtures.js';
 
 const SPEC: FunnelSpec = {
   kind: 'funnel',
@@ -29,6 +29,37 @@ function ranResponse(): AskResponse {
     error: null,
   };
 }
+
+function ranInsightResponse(spec: QuerySpec, result: InsightResult): AskResponse {
+  return {
+    ask_id: '66666666-6666-4666-8666-666666666666',
+    decision: 'ran',
+    raw_output: JSON.stringify(spec),
+    spec,
+    result,
+    error: null,
+  };
+}
+
+const TREND_SPEC: TrendSpec = {
+  kind: 'trend',
+  project: SPEC.project,
+  range: SPEC.range,
+  where: [],
+  event: { event: 'signup', where: [] },
+  measure: 'events',
+  unit: 'day',
+};
+
+const PATHS_SPEC: PathsSpec = {
+  kind: 'paths',
+  project: SPEC.project,
+  range: SPEC.range,
+  where: [],
+  start: 'signup',
+  steps: 3,
+  session_gap_minutes: 30,
+};
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -99,6 +130,21 @@ describe('QueryCard — the ran case', () => {
     await userEvent.click(screen.getByRole('button', { name: /edit spec/i }));
     await userEvent.click(screen.getByRole('button', { name: /re-run/i }));
     await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('the reader is busy'));
+  });
+
+  it.each([
+    { name: 'trend', route: '/v1/trend', spec: TREND_SPEC, result: trendResult() },
+    { name: 'paths', route: '/v1/paths', spec: PATHS_SPEC, result: pathsResult() },
+  ])('re-runs an edited $name spec through its matching endpoint', async ({ route, spec, result }) => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(result), { status: 200, headers: { 'content-type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<QueryCard question="q" response={ranInsightResponse(spec, result)} onRetry={() => undefined} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /edit spec/i }));
+    await userEvent.click(screen.getByRole('button', { name: /re-run/i }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(route, expect.objectContaining({ method: 'POST' })));
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });
 

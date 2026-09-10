@@ -58,12 +58,14 @@ export interface TestAppOptions {
   queryToken?: string;
   /** `VANTAGE_ADMIN_TOKEN`: unset ⇒ the project-admin write routes stay open ⟨D4⟩ (the default); set ⇒ create/rotate require it as a Bearer. */
   adminToken?: string;
+  /** Optional release commit exposed by `/health`. */
+  releaseSha?: string;
 }
 
 /** Builds and initialises the app; rejects (and leaks nothing) when the boot self-test refuses. */
 export async function createTestApp(options: TestAppOptions = {}): Promise<TestApp> {
   const clock = options.clock ?? new FixedClock(new Date('2026-09-02T00:00:00Z'));
-  let builder = Test.createTestingModule({ imports: [AppModule.forRoot(dbOptions(options.db), undefined, options.queryToken, options.adminToken)] }).overrideProvider(CLOCK).useValue(clock);
+  let builder = Test.createTestingModule({ imports: [AppModule.forRoot(dbOptions(options.db), undefined, options.queryToken, options.adminToken, options.releaseSha)] }).overrideProvider(CLOCK).useValue(clock);
   if (options.llm) builder = builder.overrideProvider(LLM_PORT).useValue(options.llm).overrideProvider(LLM_ADAPTER).useValue(options.adapter ?? 'scripted');
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false, logger: ['error'] });

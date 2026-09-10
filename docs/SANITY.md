@@ -24,18 +24,18 @@ docker build -t vantage-local .
 - [ ] Run funnel, retention, trend, paths, and count against the hand-computed August fixture.
 - [ ] Create/select projects, rotate/copy key once, switch snippets, load fixture, inspect Events, and exercise errors/empty states.
 - [ ] Run the real stdio MCP protocol suite and verify no generic SQL/model Ask tool exists.
-- [ ] Keyboard-navigate all ten routes and complete the 390 px mobile path without overflow.
+- [ ] Keyboard-navigate all ten routes and complete the 320 px mobile path without overflow or unnamed controls.
 - [ ] Verify auth refusal, payload-safe logs, `/health`, migrations, and clean dependency audit.
 
-## Retained evidence for the current candidate
+## Retained evidence for the current release
 
-- Exact `82d537a...` evidence in `verification-work/vantage-glass-perf-20260910/VANTAGE_GLASS_FIX_EVIDENCE.md`: 678 API/contracts/integration + 135 web tests and 12/12 PostgreSQL/Chromium workflows passed.
-- `docs/VERIFICATION.md`: desktop/mobile exploration, bounded Lighthouse, dependency resolution, and explicit harness limits.
-- Current boundary: Fly v18/public `main` are `1b721fc...` and use `VANTAGE_LLM=none`; verified lazy-load candidate `82d537a...` is the first local commit after public `main`, followed by this documentation update. Both local commits are unpublished. The anonymous health response is 200 but does not expose a release SHA.
+- `docs/VERIFICATION.md`: 832-case local gate, all-CTA/320 px browser audit, benchmark, bounded Lighthouse, dependency resolution, and explicit limits.
+- `verification-work/portfolio-release-20260910/VANTAGE_RELEASE_SIGNOFF.md`: exact local/public/live SHA, Fly image/release/machine, and post-deploy smoke.
+- `/health.release_sha` must equal `git rev-parse HEAD` and `git ls-remote origin main refs/heads/main`; a 200 response without this equality is not release proof.
 
 ## Release sequence
 
-1. Review local lazy-load candidate `82d537a...`; freeze it with the accompanying documentation update.
+1. Review the intended delta and freeze one commit.
 2. Run docs/check/bench/build/image and migration rehearsal at that commit.
 3. Confirm secret names and backup/restore plan without exposing values.
 4. Deploy with approval; record source, CI, image, release, machine, runtime mode, post-deploy flows, and rollback image.
@@ -44,6 +44,6 @@ docker build -t vantage-local .
 
 - No free-form model quality claim from `VANTAGE_LLM=none`.
 - No tenant isolation, arbitrary SQL, public capacity, field Core Web Vitals, or database recovery proof.
-- A local candidate is not a release until CI, image/release metadata, and post-deploy probes all map to its exact SHA.
+- A local candidate is not a release until CI, image/release metadata, `/health.release_sha`, and post-deploy probes all map to its exact SHA.
 
 A green local run is evidence for the exact tested tree. Call a feature deployed only after recording `source commit -> CI run -> image/release -> post-deploy smoke` for the same bytes.

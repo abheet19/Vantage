@@ -5,7 +5,7 @@
  * the amber SQL block (Copy, the real `sql` and `params`) and the result so the eye reads
  * question → structure → proof before it reaches a number. A refusal replaces the spec/SQL/result with the
  * red card and the model's raw output, and "nothing ran" (design §4.2 L1: seeing the refusal is the demo).
- * Edit spec → change the window → re-run posts the edited spec to `/v1/{funnel,count,retention}` and shows
+ * Edit spec → change the window → re-run posts the edited spec to its matching insight endpoint and shows
  * the SQL diff against the previous run (03-UI F3).
  *
  * What it must never do: claim the result answers the question — it says only what ran (the adversarial
@@ -32,6 +32,22 @@ const WINDOWS: ReadonlyArray<{ value: number; label: string }> = [
 interface Run {
   spec: QuerySpec;
   result: InsightResult;
+}
+
+/** Keep the editable Ask surface total over the same five-kind grammar the API accepts. */
+function runSpec(spec: QuerySpec): Promise<InsightResult> {
+  switch (spec.kind) {
+    case 'funnel':
+      return api.funnel(spec);
+    case 'count':
+      return api.count(spec);
+    case 'retention':
+      return api.retention(spec);
+    case 'trend':
+      return api.trend(spec);
+    case 'paths':
+      return api.paths(spec);
+  }
 }
 
 function pretty(spec: unknown): string {
@@ -78,14 +94,10 @@ function RanCard({ initial }: { initial: Run }): JSX.Element {
       return;
     }
     const spec = check.data;
-    if (spec.kind === 'trend' || spec.kind === 'paths') {
-      setSpecError('Trend and paths specs cannot be run in this build; they arrive in slice S6.');
-      return;
-    }
     setBusy(true);
     setSpecError(null);
     try {
-      const result: InsightResult = spec.kind === 'funnel' ? await api.funnel(spec) : spec.kind === 'count' ? await api.count(spec) : await api.retention(spec);
+      const result = await runSpec(spec);
       setDiffBase(run.result.sql);
       setRun({ spec, result });
       setEditing(false);

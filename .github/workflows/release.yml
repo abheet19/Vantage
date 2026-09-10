@@ -48,6 +48,8 @@ jobs:
           tags: |
             ghcr.io/abheet19/vantage:latest
             ghcr.io/abheet19/vantage:${{ github.event.workflow_run.head_sha }}
+          build-args: |
+            VANTAGE_RELEASE_SHA=${{ github.event.workflow_run.head_sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -87,4 +89,4 @@ jobs:
         # GitHub runner with an app-scoped deploy token (Depot hits `_api.internal`; the Machines builder is
         # a shared org app this token cannot start). The deploy token DOES have registry access for its own
         # app, so the local build + push + release works. ubuntu-latest ships a running Docker daemon.
-        run: flyctl deploy --local-only
+        run: flyctl deploy --local-only --build-arg VANTAGE_RELEASE_SHA=${{ github.event.workflow_run.head_sha }}

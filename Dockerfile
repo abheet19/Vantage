@@ -30,7 +30,10 @@ FROM caddy:2-alpine AS caddy
 # ---- runtime --------------------------------------------------------------------------------------
 FROM node:22-slim AS runtime
 WORKDIR /app
-ENV NODE_ENV=production
+ARG VANTAGE_RELEASE_SHA=""
+ENV NODE_ENV=production \
+    VANTAGE_RELEASE_SHA=$VANTAGE_RELEASE_SHA
+LABEL org.opencontainers.image.revision=$VANTAGE_RELEASE_SHA
 
 # The static Caddy binary (no Alpine runtime needed — it is statically linked).
 COPY --from=caddy /usr/bin/caddy /usr/bin/caddy

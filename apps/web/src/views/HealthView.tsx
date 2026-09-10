@@ -67,6 +67,7 @@ function LiveHealth(): JSX.Element {
         <div className="small muted">
           read/write pool {data.pools.rw} · read-only pool {data.pools.ro}
           {data.migration ? ` · schema v${data.migration.version}` : ''} · boot self-test {data.self_test?.ok ? 'passed' : 'unknown'}
+          {data.release_sha ? ` · release ${data.release_sha.slice(0, 7)}` : ' · local build'}
         </div>
       </div>
       <span className="grow" />

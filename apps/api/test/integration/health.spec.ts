@@ -9,7 +9,7 @@ import supertest from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { configureApp } from '../../src/app.js';
 import { DatabaseLifecycle } from '../../src/infra/database.module.js';
-import { PG_RO, PG_RW } from '../../src/infra/tokens.js';
+import { PG_RO, PG_RW, RELEASE_SHA } from '../../src/infra/tokens.js';
 import { HealthController } from '../../src/modules/health/health.controller.js';
 import { createTestApp, type TestApp } from '../helpers/app.js';
 
@@ -34,7 +34,7 @@ function closedPort(): Promise<number> {
 describe('GET /health', () => {
   it('answers 200 with both pools up, the migration version and the passed self-test', async () => {
     const res = await t.http.get('/health').expect(200);
-    expect(res.body).toMatchObject({ ok: true, pools: { rw: 'up', ro: 'up' }, migration: { version: 4, pending: [], mismatched: [] }, self_test: { ok: true } });
+    expect(res.body).toMatchObject({ ok: true, pools: { rw: 'up', ro: 'up' }, migration: { version: 4, pending: [], mismatched: [] }, self_test: { ok: true }, release_sha: null });
     const names = (res.body.self_test.checks as { name: string; ok: boolean }[]).map((c) => c.name);
     expect(names).toEqual(['rw.role', 'ro.role', 'db.encoding', 'ro.statement_timeout', 'ro.default_transaction_read_only', 'privileges', 'indexes']);
   });
@@ -48,6 +48,7 @@ describe('GET /health', () => {
         { provide: PG_RW, useValue: dead },
         { provide: PG_RO, useValue: dead },
         { provide: DatabaseLifecycle, useValue: { selfTest: { ok: true, checks: [] }, migration: { version: 4, pending: [], mismatched: [] } } },
+        { provide: RELEASE_SHA, useValue: undefined },
       ],
     }).compile();
     const app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false, logger: false });
@@ -60,6 +61,16 @@ describe('GET /health', () => {
     } finally {
       await app.close();
       await dead.end();
+    }
+  });
+
+  it('exposes the exact release commit when the process was built with one', async () => {
+    const releaseSha = '0123456789abcdef0123456789abcdef01234567';
+    const released = await createTestApp({ releaseSha });
+    try {
+      await released.http.get('/health').expect(200).expect(({ body }) => expect(body.release_sha).toBe(releaseSha));
+    } finally {
+      await released.close();
     }
   });
 });
