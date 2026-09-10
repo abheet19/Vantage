@@ -13,9 +13,7 @@ export function Rail({ route, navigate, open, onToggle }: { route: RouteId; navi
   return (
     <nav className="rail glass" aria-label="Screens">
       <button className="brand" onClick={onToggle} title={open ? 'Collapse rail' : 'Expand rail'} aria-label="Toggle rail">
-        <span className="mark">
-          <Icon name="i-ask" />
-        </span>
+        <img className="mark" src="/brand/mark.svg" alt="" />
         <b className="lbl">Vantage</b>
       </button>
       {ROUTES.map((r) => (

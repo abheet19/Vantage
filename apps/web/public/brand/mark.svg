@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="Vantage">
+  <title>Vantage</title>
+  <!--
+    The mark: a funnel that is also a V. Three stages narrowing downward — the
+    shape every product team already reads as "where people drop off" — and the
+    same three bars, seen as a whole, cut the letterform.
+
+    The bottom stage is deliberately the brightest. A funnel chart's last step is
+    the one that matters and the one that is hardest to see; making it the lit
+    edge says the product's job is the far end of the drop-off, not the top of it.
+
+    Palette:
+      #0B0D10 slate · #F2B23E gold · #C8801E amber · #7A4A0E ochre · #F7EFE0 bone
+
+    Same three planes as the Zeno and Weft marks, so the suite reads as one hand:
+      1. the cast  — deepest edge, slate
+      2. the flank — the extruded side, ochre, offset down-right
+      3. the face  — the front plane, gold, with a bone edge catching light
+  -->
+  <defs>
+    <linearGradient id="stage" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0" stop-color="#F7C766"/>
+      <stop offset="0.5" stop-color="#F2B23E"/>
+      <stop offset="1" stop-color="#C8801E"/>
+    </linearGradient>
+    <linearGradient id="flank" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7A4A0E"/>
+      <stop offset="1" stop-color="#3D2406"/>
+    </linearGradient>
+    <linearGradient id="lit" x1="0" y1="0" x2="1" y2="0.8">
+      <stop offset="0" stop-color="#F7EFE0" stop-opacity="0.60"/>
+      <stop offset="0.6" stop-color="#F7EFE0" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#F7EFE0" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="256" height="256" rx="56" fill="#0B0D10"/>
+
+  <!-- the three stages, drawn once per depth plane so the funnel reads as solid -->
+  <g fill="#05070A" transform="translate(13,13)">
+    <rect x="40" y="60" width="176" height="36" rx="12"/>
+    <rect x="70" y="110" width="116" height="36" rx="12"/>
+    <rect x="100" y="160" width="56" height="36" rx="12"/>
+  </g>
+  <g fill="url(#flank)" transform="translate(7,7)">
+    <rect x="40" y="60" width="176" height="36" rx="12"/>
+    <rect x="70" y="110" width="116" height="36" rx="12"/>
+    <rect x="100" y="160" width="56" height="36" rx="12"/>
+  </g>
+
+  <g fill="url(#stage)">
+    <rect x="40" y="60" width="176" height="36" rx="12"/>
+    <rect x="70" y="110" width="116" height="36" rx="12"/>
+    <rect x="100" y="160" width="56" height="36" rx="12"/>
+  </g>
+
+  <!--
+    The walls of the funnel: the diagonals that close the V. Without them the
+    mark is three bars; with them it is one narrowing path, which is the whole
+    idea — a single journey losing people at each step.
+  -->
+  <g fill="url(#stage)" opacity="0.34">
+    <path d="M40 96 L70 96 L70 110 Z"/>
+    <path d="M216 96 L186 96 L186 110 Z"/>
+    <path d="M70 146 L100 146 L100 160 Z"/>
+    <path d="M186 146 L156 146 L156 160 Z"/>
+  </g>
+
+  <!-- the light on the leading edge of each stage; brightest at the bottom -->
+  <rect x="40" y="60" width="176" height="11" rx="5" fill="url(#lit)"/>
+  <rect x="70" y="110" width="116" height="11" rx="5" fill="url(#lit)"/>
+  <rect x="100" y="160" width="56" height="11" rx="5" fill="#F7EFE0" opacity="0.55"/>
+</svg>
