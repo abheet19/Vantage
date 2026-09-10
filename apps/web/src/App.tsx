@@ -5,34 +5,29 @@
  * main) and switches the ten screens on the hash route. Keyboard 1–9 and 0 jump screens (03-UI §4; the
  * tenth screen takes 0), ignored while typing in a field. The rail's open/collapsed width is remembered.
  */
-import { useEffect, useState, type JSX } from 'react';
+import { lazy, Suspense, useEffect, useState, type ComponentType, type JSX } from 'react';
 import { CommandBar } from './components/CommandBar.js';
 import { IconSprite } from './components/Icons.js';
 import { Rail } from './components/Rail.js';
 import { useHashRoute } from './lib/router.js';
 import { ROUTES, type RouteId } from './routes.js';
 import { AskView } from './views/AskView.js';
-import { EventsView } from './views/EventsView.js';
-import { FunnelView } from './views/FunnelView.js';
-import { HealthView } from './views/HealthView.js';
-import { HistoryView } from './views/HistoryView.js';
-import { McpView } from './views/McpView.js';
-import { PathsView } from './views/PathsView.js';
-import { ProjectsView } from './views/ProjectsView.js';
-import { RetentionView } from './views/RetentionView.js';
-import { TrendView } from './views/TrendView.js';
 
-const VIEWS: Record<RouteId, () => JSX.Element> = {
+// Ask owns the first meaningful paint; secondary views load only when their route is selected.
+const routeView = <T extends Record<string, ComponentType>>(load: () => Promise<T>, name: keyof T) =>
+  lazy(async () => ({ default: (await load())[name] }));
+
+const VIEWS: Record<RouteId, ComponentType> = {
   ask: AskView,
-  funnel: FunnelView,
-  retention: RetentionView,
-  paths: PathsView,
-  trend: TrendView,
-  events: EventsView,
-  history: HistoryView,
-  projects: ProjectsView,
-  mcp: McpView,
-  health: HealthView,
+  funnel: routeView(() => import('./views/FunnelView.js'), 'FunnelView'),
+  retention: routeView(() => import('./views/RetentionView.js'), 'RetentionView'),
+  paths: routeView(() => import('./views/PathsView.js'), 'PathsView'),
+  trend: routeView(() => import('./views/TrendView.js'), 'TrendView'),
+  events: routeView(() => import('./views/EventsView.js'), 'EventsView'),
+  history: routeView(() => import('./views/HistoryView.js'), 'HistoryView'),
+  projects: routeView(() => import('./views/ProjectsView.js'), 'ProjectsView'),
+  mcp: routeView(() => import('./views/McpView.js'), 'McpView'),
+  health: routeView(() => import('./views/HealthView.js'), 'HealthView'),
 };
 
 const RAIL_KEY = 'vantage.rail-open';
@@ -83,7 +78,9 @@ export function App(): JSX.Element {
         <Rail route={route} navigate={navigate} open={railOpen} onToggle={() => setRailOpen((o) => !o)} />
         <CommandBar />
         <main className="main" id="main">
-          <CurrentView />
+          <Suspense fallback={<div className="screen" aria-busy="true" aria-label="Loading view" />}>
+            <CurrentView />
+          </Suspense>
         </main>
       </div>
     </>
