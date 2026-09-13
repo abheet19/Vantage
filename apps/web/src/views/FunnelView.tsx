@@ -233,7 +233,8 @@ export function FunnelView(): JSX.Element {
     <section className="screen" aria-labelledby="h-funnel">
       <div className="screen-head">
         <div>
-          <h1 id="h-funnel">Funnel</h1>
+          <span className="eyebrow">02 · Funnel</span>
+          <h1 id="h-funnel">Build a funnel by hand</h1>
           <p>
             Build the spec by hand. Event pickers come from the catalog, so only real names can be chosen. The SQL on the right is the same compiler output the Ask screen shows.
           </p>

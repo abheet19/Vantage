@@ -136,8 +136,9 @@ export function AskView(): JSX.Element {
     <section className="screen" aria-labelledby="h-ask">
       <div className="screen-head">
         <div>
-          <h1 id="h-ask">Ask</h1>
-          <p>A plain-English question becomes a typed spec, the spec becomes SQL, the SQL becomes a number. Read it in that order.</p>
+          <span className="eyebrow">01 · Ask</span>
+          <h1 id="h-ask">Ask Vantage a question</h1>
+          <p>A plain-English question is compiled into a typed spec, the spec becomes read-only SQL, the SQL becomes a number. Every step stays visible, in that order.</p>
         </div>
       </div>
       <WithProject>{(project) => <AskScreen project={project} />}</WithProject>

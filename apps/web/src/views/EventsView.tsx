@@ -140,7 +140,8 @@ export function EventsView(): JSX.Element {
     <section className="screen" aria-labelledby="h-events">
       <div className="screen-head">
         <div>
-          <h1 id="h-events">Events</h1>
+          <span className="eyebrow">06 · Events</span>
+          <h1 id="h-events">Event catalog</h1>
           <p>Every event name this project has received, with counts and first/last seen. Event names are data: rendered as text, never interpreted.</p>
         </div>
       </div>

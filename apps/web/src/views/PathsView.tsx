@@ -186,7 +186,8 @@ export function PathsView(): JSX.Element {
     <section className="screen" aria-labelledby="h-paths">
       <div className="screen-head">
         <div>
-          <h1 id="h-paths">Paths</h1>
+          <span className="eyebrow">04 · Paths</span>
+          <h1 id="h-paths">Top transitions</h1>
           <p>Top transitions between consecutive events per person, within a session gap, up to five steps from a start event. A ranked table, not a sankey.</p>
         </div>
       </div>

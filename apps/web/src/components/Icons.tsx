@@ -10,7 +10,7 @@ export type IconName =
   | 'i-ask' | 'i-funnel' | 'i-ret' | 'i-paths' | 'i-trend' | 'i-events' | 'i-hist' | 'i-proj' | 'i-health' | 'i-menu'
   | 'i-copy' | 'i-play' | 'i-edit' | 'i-chev' | 'i-chevd' | 'i-x' | 'i-check'
   | 'i-warn' | 'i-info' | 'i-eye' | 'i-lock' | 'i-rotate' | 'i-sun' | 'i-db' | 'i-plus' | 'i-mcp' | 'i-merge'
-  | 'i-search';
+  | 'i-search' | 'i-cog' | 'i-clock' | 'i-contrast';
 
 export function Icon({ name, className = 'i', style }: { name: IconName; className?: string; style?: JSX.IntrinsicElements['svg']['style'] }): JSX.Element {
   return (
@@ -51,6 +51,9 @@ export function IconSprite(): JSX.Element {
       <symbol id="i-mcp" viewBox="0 0 16 16"><path d="M5 3.5H4a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 4 12.5h1M11 3.5h1a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5h-1" /><path d="M6 8h4" /></symbol>
       <symbol id="i-merge" viewBox="0 0 16 16"><circle cx="4" cy="4" r="1.5" /><circle cx="4" cy="12" r="1.5" /><circle cx="12" cy="8" r="1.5" /><path d="M4 5.5v5M4 6c0 2 6 1 6.5 2M4 10c0-2 6-1 6.5-2" /></symbol>
       <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" /><path d="M13.5 13.5L10.3 10.3" /></symbol>
+      <symbol id="i-cog" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.1" /><path d="M12.9 9a5 5 0 0 0 0-2l1.3-1-1.3-2.2-1.6.5a5 5 0 0 0-1.7-1L9.3 1.5h-2.6L6.4 3.3a5 5 0 0 0-1.7 1L3.1 3.8 1.8 6l1.3 1a5 5 0 0 0 0 2l-1.3 1L3.1 12.2l1.6-.5a5 5 0 0 0 1.7 1l.3 1.8h2.6l.3-1.8a5 5 0 0 0 1.7-1l1.6.5L14.2 10z" /></symbol>
+      <symbol id="i-clock" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.8" /><path d="M8 5v3.2l2.1 1.3" /></symbol>
+      <symbol id="i-contrast" viewBox="0 0 16 16"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5" /><path d="M5.5 8h5" /></symbol>
     </svg>
   );
 }

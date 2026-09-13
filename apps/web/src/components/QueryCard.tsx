@@ -110,6 +110,7 @@ function RanCard({ initial }: { initial: Run }): JSX.Element {
 
   return (
     <>
+      <div className="trace-row">
       {/* spec block (violet) */}
       <div className="qblock spec">
         <div className="bar" />
@@ -164,6 +165,7 @@ function RanCard({ initial }: { initial: Run }): JSX.Element {
           </div>
           <SqlView sql={sql} params={params} {...(diffBase !== null ? { diffAgainst: diffBase } : {})} className="sqlpre" />
         </div>
+      </div>
       </div>
       {/* result */}
       <div className="slide">

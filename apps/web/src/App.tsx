@@ -23,6 +23,10 @@ import { AskView } from './views/AskView.js';
 const routeView = <T extends Record<string, ComponentType>>(load: () => Promise<T>, name: keyof T) =>
   lazy(async () => ({ default: (await load())[name] }));
 
+// The three configuration screens are folded into one Settings view (03-UI glass-redesign match); it still
+// mounts the real ProjectsView / McpView / HealthView, so their wiring and data flows are unchanged.
+const SettingsView = routeView(() => import('./views/SettingsView.js'), 'SettingsView');
+
 const VIEWS: Record<RouteId, ComponentType> = {
   ask: AskView,
   funnel: routeView(() => import('./views/FunnelView.js'), 'FunnelView'),
@@ -31,9 +35,10 @@ const VIEWS: Record<RouteId, ComponentType> = {
   trend: routeView(() => import('./views/TrendView.js'), 'TrendView'),
   events: routeView(() => import('./views/EventsView.js'), 'EventsView'),
   history: routeView(() => import('./views/HistoryView.js'), 'HistoryView'),
-  projects: routeView(() => import('./views/ProjectsView.js'), 'ProjectsView'),
-  mcp: routeView(() => import('./views/McpView.js'), 'McpView'),
-  health: routeView(() => import('./views/HealthView.js'), 'HealthView'),
+  settings: SettingsView,
+  projects: SettingsView,
+  mcp: SettingsView,
+  health: SettingsView,
 };
 
 const RAIL_KEY = 'vantage.rail-open';
@@ -120,12 +125,14 @@ export function App(): JSX.Element {
       <div className="ground" aria-hidden="true" />
       <div className={`app${railOpen ? ' rail-open' : ''}`}>
         <Rail route={route} navigate={navigate} open={railOpen} onToggle={() => setRailOpen((o) => !o)} />
-        <CommandBar onOpenPalette={() => setPaletteOpen(true)} toast={toast} />
-        <main className="main" id="main">
-          <Suspense fallback={<div className="screen" aria-busy="true" aria-label="Loading view" />}>
-            <CurrentView />
-          </Suspense>
-        </main>
+        <div className="shell">
+          <CommandBar onOpenPalette={() => setPaletteOpen(true)} toast={toast} />
+          <main className="main workspace" id="main">
+            <Suspense fallback={<div className="screen" aria-busy="true" aria-label="Loading view" />}>
+              <CurrentView />
+            </Suspense>
+          </main>
+        </div>
       </div>
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} navigate={navigate} toast={toast} />
       <div className="toast-region" role="status" aria-live="polite">

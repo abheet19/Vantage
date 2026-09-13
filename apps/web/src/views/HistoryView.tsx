@@ -130,6 +130,7 @@ export function HistoryView(): JSX.Element {
     <section className="screen" aria-labelledby="h-history">
       <div className="screen-head">
         <div>
+          <span className="eyebrow">07 · History</span>
           <h1 id="h-history">Ask history</h1>
           <p>Every ask is written before its result is shown: the question, the model’s raw text, the spec that survived, the SQL that ran, and how it ended. This is what you hand to a reviewer.</p>
         </div>

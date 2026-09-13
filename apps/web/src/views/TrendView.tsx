@@ -212,7 +212,8 @@ export function TrendView(): JSX.Element {
     <section className="screen" aria-labelledby="h-trend">
       <div className="screen-head">
         <div>
-          <h1 id="h-trend">Trend</h1>
+          <span className="eyebrow">05 · Trend</span>
+          <h1 id="h-trend">Event volume over time</h1>
           <p>One event counted per time bucket in the project timezone — as events or unique persons, with an optional property breakdown. The dashed tail is a bucket that has not ended.</p>
         </div>
       </div>

@@ -1,106 +1,162 @@
-/* tokens.css — Observatory-glass design tokens.
-   Verbatim from 03-UI.md §2.2 (dark-first) and docs/prototype/vantage.html §1, the approved Gate 1
-   surface. The block is copied, not re-derived: the palette is OKLCH and any hand-editing would drift
-   the surface off its approved values. The theme triad is the one 03-UI mandates — bare :root is dark,
-   :root[data-theme="light"] is the manual light override, and the media block is system-light for anyone
-   who has not chosen. The "prototype-only derived tokens" are the ones the ported component CSS
-   references (glows, diff bands, the heat-ink used as button-on text); each is built from the tokens
-   above it, so nothing here is a new colour.
+/* tokens.css — Observatory-glass design tokens, GLASS-REDESIGN "vantage.html" match pass.
+   The approved artifact (docs/prototype/vantage.html → scratchpad redesign) hand-tunes a hex/rgba palette
+   that ADDS teal as a third load-bearing hue alongside the amber accent and violet spec colour, on warmer
+   surfaces and rounder radii than the previous OKLCH indigo-black surface. This file is that palette.
 
-   REAL DEPENDENCY: @abheet19/glass (https://github.com/abheet19/glass). ./vendor/glass-base.css is
-   a committed, generated copy of glass's src/tokens.css — see tools/sync-glass.mjs at the repo root
-   for how it's produced and kept current; a live npm/file: link isn't usable here because the
-   Fly.io Dockerfile builds from this repo alone, with no sibling directory in the build context.
+   COMPATIBILITY: every custom-property NAME the shipped components already reference (--ink/-2/-3, --bg,
+   --surface, --raised, --line, --accent/-2, --ok/--warn/--bad/--info, --c1..6, --s0..5, --gl-*, --r-1/2/3,
+   --fs-*, --t-*, --ease, --font-*, --heat-ink-dark, --glow-1/2, --shadow-1, --diff-*) is redeclared here and
+   mapped onto the artifact's values, so no component CSS breaks. Alongside them the artifact's OWN names
+   (--surface-2, --surface-solid, --border, --border-strong, --ink-dim/-faint, --accent-ink/-soft, --teal(-soft),
+   --violet, --rose, --blue, --good(-soft), --bad-soft, --blur, --sat, --r-lg/md/sm, --shadow-panel/-pop,
+   --font-display/body) are defined too, so the refactored markup reads the same tokens the artifact does.
 
-   This is an override, not a redesign: every custom property below that glass's base grammar also
-   defines (--r-1/2/3, --ease, --t-fast/base/slow, --gl-blur/edge/fill/spec/shadow, --ink/-2/-3,
-   --bg/--surface/--raised/--line, --fs-0/1/2, --font-ui/mono, --accent/-2, --ok/--warn/--bad/--info)
-   is redeclared in this file's own :root block below, which — later in the cascade at equal
-   specificity — wins. The Gate-1-approved gold/ochre surface below is therefore completely
-   unchanged by the import; it only adds tokens Vantage doesn't already define.
-
-   GLASS REDESIGN PASS (docs/prototype → the approved ecosystem-wide glass reskin): the two brand hues
-   (amber --accent for "ask"/SQL, violet --accent-2 for the spec) and the four state hues are UNCHANGED —
-   they are load-bearing product semantics (README's "spec (violet) → SQL (amber)"), not decoration, and
-   glass's own law is "a theme rotates its accent" — not a third one. What moved is Vantage's own
-   type stack, which glass explicitly leaves to the product ("no @font-face and no @import appears
-   anywhere in [glass]"): --font-ui is now Manrope (body/controls) and a new, Vantage-only --font-display
-   (Bricolage Grotesque) carries headings and panel titles, matching the ecosystem's current display+body+
-   mono triad. --font-mono keeps Geist Mono as a fallback so a fully offline build still renders a real
-   monospace face. */
+   THE THEME TRIAD. bare :root is LIGHT (the artifact's default); the system-dark media block and the manual
+   [data-theme="dark"] block swap to dark; [data-theme="light"] pins light. theme.ts always stamps an explicit
+   data-theme, so the manual blocks are what render — the media block is the pre-hydration / no-JS fallback. */
 @import "./vendor/glass-base.css";
 
 :root {
-  --bg:       oklch(13% 0.02 275);      /* indigo-black */
-  --surface:  oklch(18% 0.018 275);
-  --raised:   oklch(23% 0.016 275);
-  --line:     oklch(30% 0.016 275);
-  --ink:      oklch(95% 0.006 90);
-  --ink-2:    oklch(74% 0.01 275);
-  --ink-3:    oklch(58% 0.012 275);
+  /* ---- artifact palette (light) ---- */
+  --bg:#eef1f7;
+  --glow-1:rgba(184,121,15,0.10);
+  --glow-2:rgba(15,148,136,0.10);
+  --surface-2:rgba(10,14,30,0.075);
+  --surface-solid:#e5e9f1;
+  --surface-solid-2:#dbe0ea;
+  --border:rgba(10,14,30,0.11);
+  --border-strong:rgba(10,14,30,0.20);
+  --ink:#151926;
+  --ink-dim:#565f74;
+  --ink-faint:#838da3;
+  --accent:#b8790f;
+  --accent-ink:#fffaf0;
+  --accent-soft:rgba(184,121,15,0.14);
+  --accent-2:#7452cf;
+  --teal:#0f8f83;
+  --teal-soft:rgba(15,143,131,0.14);
+  --violet:#7452cf;
+  --rose:#c73a63;
+  --blue:#2564a8;
+  --good:#0f8f6a;
+  --good-soft:rgba(15,143,106,0.14);
+  --bad:#c8324a;
+  --bad-soft:rgba(200,50,74,0.14);
+  --blur:20px; --sat:150%;
+  --shadow-panel:0 1px 0 rgba(255,255,255,0.55) inset, 0 24px 48px -28px rgba(20,22,40,0.28);
+  --shadow-pop:0 1px 0 rgba(255,255,255,0.6) inset, 0 30px 70px -20px rgba(20,22,40,0.35);
 
-  --accent:   oklch(82% 0.13 85);       /* warm amber — the "ask" and the executed SQL */
-  --accent-2: oklch(72% 0.14 300);      /* violet — the spec (structure) */
-  --ok:       oklch(76% 0.15 150);
-  --warn:     oklch(80% 0.15 75);
-  --bad:      oklch(70% 0.19 25);
-  --info:     oklch(76% 0.12 240);
+  /* ---- compatibility aliases onto the shipped token names ---- */
+  --surface:var(--surface-solid);
+  --raised:var(--surface-solid-2);
+  --line:var(--border);
+  --ink-2:var(--ink-dim);
+  --ink-3:var(--ink-faint);
+  --ok:var(--good); --warn:var(--accent); --info:var(--blue);
+  --heat-ink-dark:#08131f;
 
-  /* categorical (6) — equal L/C, for breakdowns and funnel steps */
-  --c1: oklch(75% 0.14 85);  --c2: oklch(72% 0.14 300); --c3: oklch(74% 0.13 200);
-  --c4: oklch(74% 0.14 150); --c5: oklch(72% 0.15 25);  --c6: oklch(74% 0.12 250);
-  /* sequential (retention heatmap) — one hue, lightness ramp; global scale, never per row */
-  --s0: oklch(20% 0.02 275); --s1: oklch(30% 0.06 275); --s2: oklch(42% 0.10 275);
-  --s3: oklch(55% 0.13 275); --s4: oklch(68% 0.14 275); --s5: oklch(82% 0.13 275);
+  /* categorical (6) — event/step/series hues, amber-led with teal/violet/rose behind */
+  --c1:var(--accent); --c2:var(--teal); --c3:var(--violet); --c4:var(--rose); --c5:var(--blue); --c6:var(--good);
+  /* sequential (retention heatmap) — one teal lightness ramp, global scale */
+  --s0:rgba(15,143,131,0.06); --s1:rgba(15,143,131,0.18); --s2:rgba(15,143,131,0.34);
+  --s3:rgba(15,143,131,0.52); --s4:rgba(15,143,131,0.74); --s5:#0f8f83;
 
-  --gl-fill:  oklch(20% 0.02 275 / .55); --gl-edge: oklch(100% 0 0 / .12); --gl-spec: oklch(100% 0 0 / .30);
-  --gl-blur:  blur(14px) saturate(1.4);
-  --gl-shadow: inset 0 1px 0 var(--gl-spec), 0 10px 30px -12px oklch(0% 0 0 / .6);
+  /* glass geometry mapped to the artifact's blur/surface */
+  --gl-fill:var(--surface-2); --gl-edge:var(--border); --gl-spec:rgba(255,255,255,0.55);
+  --gl-blur:blur(var(--blur)) saturate(var(--sat));
+  --gl-shadow:var(--shadow-panel);
+  --shadow-1:var(--shadow-panel);
+  --diff-add:rgba(15,143,106,0.16); --diff-del:rgba(200,50,74,0.14);
 
-  --font-ui:      "Manrope", "Geist", "Inter", system-ui, sans-serif;         /* body, controls */
-  --font-display: "Bricolage Grotesque", "Manrope", "Geist", system-ui, sans-serif; /* h1/h2/h3, panel titles — Vantage-only, additive: glass's base grammar has no display slot */
-  --font-mono:    "JetBrains Mono", "Geist Mono", ui-monospace, "Cascadia Code", monospace; /* SQL, spec, numbers */
-  --fs-0: clamp(.78rem,.76rem+.1vw,.85rem); --fs-1: clamp(.9rem,.86rem+.2vw,1rem); --fs-2: clamp(1.1rem,1rem+.4vw,1.3rem);
-  --fs-kpi: clamp(1.8rem,1.4rem+1.2vw,2.6rem);
-  --r-1: 8px; --r-2: 12px; --r-3: 16px; --t-fast: 120ms; --t-base: 220ms; --t-slow: 400ms; --ease: cubic-bezier(.2,.8,.2,1);
+  /* type + radii + motion */
+  --font-display:"Bricolage Grotesque","Manrope","Segoe UI",system-ui,sans-serif;
+  --font-body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --font-ui:var(--font-body);
+  --font-mono:"JetBrains Mono","Geist Mono",ui-monospace,"Cascadia Code",Consolas,monospace;
+  --fs-0: clamp(.78rem,.76rem+.1vw,.85rem); --fs-1: clamp(.9rem,.86rem+.2vw,1rem); --fs-2: clamp(1.05rem,.98rem+.35vw,1.22rem);
+  --fs-kpi: clamp(1.6rem,1.3rem+1vw,2.2rem);
+  --r-sm:9px; --r-md:14px; --r-lg:20px;
+  --r-1:var(--r-sm); --r-2:var(--r-md); --r-3:var(--r-lg);
+  --t-fast:120ms; --t-base:220ms; --t-slow:400ms; --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme: light dark;
+}
 
-  /* prototype-only derived tokens (all built from the above) */
-  --glow-1: oklch(82% 0.13 85 / .10);   /* accent ground glow */
-  --glow-2: oklch(72% 0.14 300 / .12);  /* violet ground glow */
-  --heat-ink-dark: oklch(15% 0.02 275); /* text on bright cells / on the amber "on" state */
-  --diff-add: oklch(76% 0.15 150 / .18);
-  --diff-del: oklch(70% 0.19 25 / .16);
-  --shadow-1: 0 1px 0 oklch(100% 0 0 / .04) inset, 0 8px 24px -16px oklch(0% 0 0 / .7);
+/* ---- dark: system default (no explicit choice) ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0a0c13;
+    --glow-1:rgba(234,179,56,0.13);
+    --glow-2:rgba(45,212,191,0.11);
+    --surface-2:rgba(255,255,255,0.075);
+    --surface-solid:#12141e;
+    --surface-solid-2:#181c28;
+    --border:rgba(255,255,255,0.09);
+    --border-strong:rgba(255,255,255,0.18);
+    --ink:#edf0f7;
+    --ink-dim:#98a0b6;
+    --ink-faint:#666e83;
+    --accent:#eab338;
+    --accent-ink:#241900;
+    --accent-soft:rgba(234,179,56,0.16);
+    --accent-2:#a78bfa;
+    --teal:#2dd4bf;
+    --teal-soft:rgba(45,212,191,0.14);
+    --violet:#a78bfa;
+    --rose:#fb7185;
+    --blue:#60a5fa;
+    --good:#34d399;
+    --good-soft:rgba(52,211,153,0.14);
+    --bad:#f87171;
+    --bad-soft:rgba(248,113,113,0.14);
+    --shadow-panel:0 1px 0 rgba(255,255,255,0.06) inset, 0 32px 64px -30px rgba(0,0,0,0.6);
+    --shadow-pop:0 1px 0 rgba(255,255,255,0.07) inset, 0 40px 90px -20px rgba(0,0,0,0.7);
+    --gl-spec:rgba(255,255,255,0.10);
+    --s0:rgba(45,212,191,0.06); --s1:rgba(45,212,191,0.18); --s2:rgba(45,212,191,0.34);
+    --s3:rgba(45,212,191,0.52); --s4:rgba(45,212,191,0.74); --s5:#2dd4bf;
+    --diff-add:rgba(52,211,153,0.16); --diff-del:rgba(248,113,113,0.16);
+    color-scheme: dark;
+  }
+}
+
+/* ---- dark: manual pin ---- */
+:root[data-theme="dark"] {
+  --bg:#0a0c13;
+  --glow-1:rgba(234,179,56,0.13);
+  --glow-2:rgba(45,212,191,0.11);
+  --surface-2:rgba(255,255,255,0.075);
+  --surface-solid:#12141e;
+  --surface-solid-2:#181c28;
+  --border:rgba(255,255,255,0.09);
+  --border-strong:rgba(255,255,255,0.18);
+  --ink:#edf0f7;
+  --ink-dim:#98a0b6;
+  --ink-faint:#666e83;
+  --accent:#eab338;
+  --accent-ink:#241900;
+  --accent-soft:rgba(234,179,56,0.16);
+  --accent-2:#a78bfa;
+  --teal:#2dd4bf;
+  --teal-soft:rgba(45,212,191,0.14);
+  --violet:#a78bfa;
+  --rose:#fb7185;
+  --blue:#60a5fa;
+  --good:#34d399;
+  --good-soft:rgba(52,211,153,0.14);
+  --bad:#f87171;
+  --bad-soft:rgba(248,113,113,0.14);
+  --shadow-panel:0 1px 0 rgba(255,255,255,0.06) inset, 0 32px 64px -30px rgba(0,0,0,0.6);
+  --shadow-pop:0 1px 0 rgba(255,255,255,0.07) inset, 0 40px 90px -20px rgba(0,0,0,0.7);
+  --gl-spec:rgba(255,255,255,0.10);
+  --s0:rgba(45,212,191,0.06); --s1:rgba(45,212,191,0.18); --s2:rgba(45,212,191,0.34);
+  --s3:rgba(45,212,191,0.52); --s4:rgba(45,212,191,0.74); --s5:#2dd4bf;
+  --diff-add:rgba(52,211,153,0.16); --diff-del:rgba(248,113,113,0.16);
   color-scheme: dark;
 }
-:root[data-theme="light"] { --bg: oklch(97% 0.008 85); --surface: oklch(99.5% 0.003 85); --raised: oklch(96% 0.008 85);
-  --line: oklch(88% 0.01 85); --ink: oklch(20% 0.02 275); --ink-2: oklch(42% 0.015 275); --ink-3: oklch(58% 0.015 275);
-  --accent: oklch(62% 0.14 75); --accent-2: oklch(50% 0.16 300);
-  --gl-fill: oklch(100% 0 0 / .6); --gl-edge: oklch(20% 0.02 275 / .10); --gl-spec: oklch(100% 0 0 / .9);
-  --s0: oklch(96% 0.01 275); --s1: oklch(88% 0.05 275); --s2: oklch(78% 0.09 275); --s3: oklch(66% 0.13 275); --s4: oklch(55% 0.15 275); --s5: oklch(45% 0.16 275);
-  --ok: oklch(52% 0.15 150); --warn: oklch(60% 0.15 75); --bad: oklch(55% 0.19 25); --info: oklch(52% 0.12 240);
-  --c1: oklch(62% 0.14 85); --c2: oklch(52% 0.16 300); --c3: oklch(55% 0.13 200); --c4: oklch(55% 0.14 150); --c5: oklch(55% 0.15 25); --c6: oklch(55% 0.12 250);
-  --glow-1: oklch(62% 0.14 75 / .14); --glow-2: oklch(50% 0.16 300 / .10);
-  --heat-ink-dark: oklch(15% 0.02 275);
-  --gl-shadow: inset 0 1px 0 var(--gl-spec), 0 10px 30px -12px oklch(0% 0 0 / .18);
-  --shadow-1: 0 8px 24px -16px oklch(0% 0 0 / .25);
-  color-scheme: light; }
-@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) { --bg: oklch(97% 0.008 85); --surface: oklch(99.5% 0.003 85); --raised: oklch(96% 0.008 85);
-  --line: oklch(88% 0.01 85); --ink: oklch(20% 0.02 275); --ink-2: oklch(42% 0.015 275); --ink-3: oklch(58% 0.015 275);
-  --accent: oklch(62% 0.14 75); --accent-2: oklch(50% 0.16 300);
-  --gl-fill: oklch(100% 0 0 / .6); --gl-edge: oklch(20% 0.02 275 / .10); --gl-spec: oklch(100% 0 0 / .9);
-  --s0: oklch(96% 0.01 275); --s1: oklch(88% 0.05 275); --s2: oklch(78% 0.09 275); --s3: oklch(66% 0.13 275); --s4: oklch(55% 0.15 275); --s5: oklch(45% 0.16 275);
-  --ok: oklch(52% 0.15 150); --warn: oklch(60% 0.15 75); --bad: oklch(55% 0.19 25); --info: oklch(52% 0.12 240);
-  --c1: oklch(62% 0.14 85); --c2: oklch(52% 0.16 300); --c3: oklch(55% 0.13 200); --c4: oklch(55% 0.14 150); --c5: oklch(55% 0.15 25); --c6: oklch(55% 0.12 250);
-  --glow-1: oklch(62% 0.14 75 / .14); --glow-2: oklch(50% 0.16 300 / .10);
-  --heat-ink-dark: oklch(15% 0.02 275);
-  --gl-shadow: inset 0 1px 0 var(--gl-spec), 0 10px 30px -12px oklch(0% 0 0 / .18);
-  --shadow-1: 0 8px 24px -16px oklch(0% 0 0 / .25);
-  color-scheme: light; } }
 
-/* a11y fallbacks (03-UI §2.2): reduced transparency swaps glass for the raised surface; the manual
-   toggle sets data-flat="1" for the same effect. Reduced motion kills every animation and transition. */
-@supports not (backdrop-filter: blur(1px)) { .glass { background: var(--raised) } }
-@media (prefers-reduced-transparency: reduce) { .glass { backdrop-filter: none; background: var(--raised) } }
-:root[data-flat="1"] .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--raised); }
+/* a11y fallbacks: reduced transparency swaps glass for the solid surface; the manual toggle sets
+   data-flat="1" (and the artifact's .no-glass is honoured too). Reduced motion kills animation. */
+@supports not (backdrop-filter: blur(1px)) { .glass { background: var(--surface-solid) } }
+@media (prefers-reduced-transparency: reduce) { .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface-solid) } }
+:root[data-flat="1"] .glass, html.no-glass .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface-solid); }
+:root[data-flat="1"] .glass.raised, html.no-glass .glass.raised { background: var(--surface-solid-2); }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: 0ms !important } }

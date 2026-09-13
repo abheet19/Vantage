@@ -57,6 +57,27 @@ export function CommandPalette({
     }));
     const actions: Item[] = [
       {
+        id: 'route-projects',
+        label: 'Projects & ingest',
+        hint: 'Settings',
+        icon: 'i-proj',
+        run: () => navigate('projects'),
+      },
+      {
+        id: 'route-mcp',
+        label: 'MCP',
+        hint: 'Settings',
+        icon: 'i-mcp',
+        run: () => navigate('mcp'),
+      },
+      {
+        id: 'route-health',
+        label: 'Health',
+        hint: 'Settings',
+        icon: 'i-health',
+        run: () => navigate('health'),
+      },
+      {
         id: 'action-copy-link',
         label: 'Copy link to this screen',
         hint: window.location.hash || '#/ask',

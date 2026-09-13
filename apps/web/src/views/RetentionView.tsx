@@ -232,7 +232,8 @@ export function RetentionView(): JSX.Element {
     <section className="screen" aria-labelledby="h-retention">
       <div className="screen-head">
         <div>
-          <h1 id="h-retention">Retention</h1>
+          <span className="eyebrow">03 · Retention</span>
+          <h1 id="h-retention">Cohort retention grid</h1>
           <p>Cohorts by first start-event day in the project timezone; a cell is retained if the return event happened in that period. Hatched cells are periods that have not ended.</p>
         </div>
       </div>
