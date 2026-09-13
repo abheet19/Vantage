@@ -9,7 +9,8 @@ import type { JSX } from 'react';
 export type IconName =
   | 'i-ask' | 'i-funnel' | 'i-ret' | 'i-paths' | 'i-trend' | 'i-events' | 'i-hist' | 'i-proj' | 'i-health' | 'i-menu'
   | 'i-copy' | 'i-play' | 'i-edit' | 'i-chev' | 'i-chevd' | 'i-x' | 'i-check'
-  | 'i-warn' | 'i-info' | 'i-eye' | 'i-lock' | 'i-rotate' | 'i-sun' | 'i-db' | 'i-plus' | 'i-mcp' | 'i-merge';
+  | 'i-warn' | 'i-info' | 'i-eye' | 'i-lock' | 'i-rotate' | 'i-sun' | 'i-db' | 'i-plus' | 'i-mcp' | 'i-merge'
+  | 'i-search';
 
 export function Icon({ name, className = 'i', style }: { name: IconName; className?: string; style?: JSX.IntrinsicElements['svg']['style'] }): JSX.Element {
   return (
@@ -49,6 +50,7 @@ export function IconSprite(): JSX.Element {
       <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" /></symbol>
       <symbol id="i-mcp" viewBox="0 0 16 16"><path d="M5 3.5H4a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 4 12.5h1M11 3.5h1a1.5 1.5 0 0 1 1.5 1.5v6a1.5 1.5 0 0 1-1.5 1.5h-1" /><path d="M6 8h4" /></symbol>
       <symbol id="i-merge" viewBox="0 0 16 16"><circle cx="4" cy="4" r="1.5" /><circle cx="4" cy="12" r="1.5" /><circle cx="12" cy="8" r="1.5" /><path d="M4 5.5v5M4 6c0 2 6 1 6.5 2M4 10c0-2 6-1 6.5-2" /></symbol>
+      <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" /><path d="M13.5 13.5L10.3 10.3" /></symbol>
     </svg>
   );
 }

@@ -17,7 +17,17 @@
    --bg/--surface/--raised/--line, --fs-0/1/2, --font-ui/mono, --accent/-2, --ok/--warn/--bad/--info)
    is redeclared in this file's own :root block below, which — later in the cascade at equal
    specificity — wins. The Gate-1-approved gold/ochre surface below is therefore completely
-   unchanged by the import; it only adds tokens Vantage doesn't already define. */
+   unchanged by the import; it only adds tokens Vantage doesn't already define.
+
+   GLASS REDESIGN PASS (docs/prototype → the approved ecosystem-wide glass reskin): the two brand hues
+   (amber --accent for "ask"/SQL, violet --accent-2 for the spec) and the four state hues are UNCHANGED —
+   they are load-bearing product semantics (README's "spec (violet) → SQL (amber)"), not decoration, and
+   glass's own law is "a theme rotates its accent" — not a third one. What moved is Vantage's own
+   type stack, which glass explicitly leaves to the product ("no @font-face and no @import appears
+   anywhere in [glass]"): --font-ui is now Manrope (body/controls) and a new, Vantage-only --font-display
+   (Bricolage Grotesque) carries headings and panel titles, matching the ecosystem's current display+body+
+   mono triad. --font-mono keeps Geist Mono as a fallback so a fully offline build still renders a real
+   monospace face. */
 @import "./vendor/glass-base.css";
 
 :root {
@@ -47,8 +57,9 @@
   --gl-blur:  blur(14px) saturate(1.4);
   --gl-shadow: inset 0 1px 0 var(--gl-spec), 0 10px 30px -12px oklch(0% 0 0 / .6);
 
-  --font-ui:   "Geist", "Inter", system-ui, sans-serif;
-  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;   /* SQL, spec, numbers */
+  --font-ui:      "Manrope", "Geist", "Inter", system-ui, sans-serif;         /* body, controls */
+  --font-display: "Bricolage Grotesque", "Manrope", "Geist", system-ui, sans-serif; /* h1/h2/h3, panel titles — Vantage-only, additive: glass's base grammar has no display slot */
+  --font-mono:    "JetBrains Mono", "Geist Mono", ui-monospace, "Cascadia Code", monospace; /* SQL, spec, numbers */
   --fs-0: clamp(.78rem,.76rem+.1vw,.85rem); --fs-1: clamp(.9rem,.86rem+.2vw,1rem); --fs-2: clamp(1.1rem,1rem+.4vw,1.3rem);
   --fs-kpi: clamp(1.8rem,1.4rem+1.2vw,2.6rem);
   --r-1: 8px; --r-2: 12px; --r-3: 16px; --t-fast: 120ms; --t-base: 220ms; --t-slow: 400ms; --ease: cubic-bezier(.2,.8,.2,1);

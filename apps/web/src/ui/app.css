@@ -10,9 +10,10 @@ html, body { height: 100%; margin: 0; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-1); line-height: 1.5; font-weight: 400; -webkit-font-smoothing: antialiased; overflow: hidden; font-variant-numeric: tabular-nums; }
 #root { height: 100%; }
 h1, h2, h3, h4, p { margin: 0; }
-h1 { font-size: var(--fs-2); font-weight: 600; letter-spacing: -.01em; }
-h2 { font-size: var(--fs-1); font-weight: 600; }
-h3 { font-size: var(--fs-0); font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+h1, h2, h3 { font-family: var(--font-display); } /* CHANGED (glass redesign): display type carries headings and panel titles; body copy stays on --font-ui. */
+h1 { font-size: var(--fs-2); font-weight: 700; letter-spacing: -.015em; }
+h2 { font-size: var(--fs-1); font-weight: 600; letter-spacing: -.005em; }
+h3 { font-size: var(--fs-0); font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
 a { color: var(--accent); }
 code, pre, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 pre { margin: 0; white-space: pre; overflow: auto; font-size: var(--fs-0); line-height: 1.55; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
@@ -63,13 +64,17 @@ svg.i { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill
 .rail .brand b { font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
 .rail .lbl { white-space: nowrap; overflow: hidden; opacity: 0; width: 0; transition: opacity var(--t-fast); }
 .rail-open .rail .lbl { opacity: 1; width: auto; }
-.rail button.nav { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: var(--r-1); color: var(--ink-2); width: 100%; position: relative; }
-.rail button.nav:hover { background: oklch(100% 0 0 / .05); color: var(--ink); }
+.rail .nav { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border-radius: var(--r-1); color: var(--ink-2); width: 100%; position: relative; text-decoration: none; transition: background-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease); } /* CHANGED: was `button.nav` — broadened so the anchor-based ecosystem link (below) shares the same sizing/hover language as the route buttons. */
+.rail .nav:hover { background: oklch(100% 0 0 / .05); color: var(--ink); }
 .rail button.nav[aria-current="page"] { color: var(--ink); background: oklch(100% 0 0 / .08); }
 .rail button.nav[aria-current="page"]::before { content: ""; position: absolute; left: -8px; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--accent); }
 .rail .key { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; line-height: 16px; }
 .rail .spacer { flex: 1; }
-.rail .sep { height: 1px; background: var(--gl-edge); margin: 6px 8px; }
+.rail .sep { height: 1px; background: var(--gl-edge); margin: 6px 8px; flex: none; }
+/* ecosystem badge — a small, always-legible link to the wider abheet19 portfolio, matching the rail's own nav rhythm rather than adding a new visual language. */
+.rail .nav.ecosystem { color: var(--ink-3); font-size: var(--fs-0); }
+.rail .nav.ecosystem:hover { color: var(--accent-2); }
+.rail .nav.ecosystem svg { opacity: .85; }
 
 /* ---------- command bar (prototype §5) ---------- */
 .cmd { display: flex; align-items: center; gap: 12px; padding: 0 24px; border-width: 0 0 1px; border-radius: 0; z-index: 2; }
@@ -86,6 +91,32 @@ svg.i { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.5; fill
 .cmd .toggle[aria-pressed="true"] .sw { background: var(--accent); } .cmd .toggle[aria-pressed="true"] .sw::after { transform: translateX(12px); background: var(--heat-ink-dark); }
 .cmd .proj select { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }  /* CHANGED: the project switcher is a real <select> overlaid on the pill so switching needs no popover JS. */
 .cmd .proj { position: relative; }
+.cmd .cmdk-trigger { cursor: pointer; }
+.cmd .cmdk-trigger:hover { background: oklch(100% 0 0 / .06); color: var(--ink); }
+.cmd .cmdk-trigger .kbd { margin-left: 2px; }
+
+/* ---------- command palette (glass overlay — chrome, not data, so it is allowed to be glass) ---------- */
+.cmdk-scrim { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh; background: oklch(0% 0 0 / .38); }
+:root[data-theme="light"] .cmdk-scrim { background: oklch(20% 0.02 275 / .22); }
+.cmdk-modal { width: min(560px, 92vw); max-height: 70vh; display: flex; flex-direction: column; border-radius: var(--r-3); overflow: hidden; animation: rise var(--t-base) var(--ease) both; }
+.cmdk-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--gl-edge); flex: none; }
+.cmdk-row svg { color: var(--ink-3); }
+.cmdk-input { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--ink); font-family: var(--font-ui); font-size: var(--fs-2); }
+.cmdk-input::placeholder { color: var(--ink-3); }
+.cmdk-list { list-style: none; margin: 0; padding: 8px; overflow-y: auto; }
+.cmdk-item { display: flex; align-items: center; gap: 11px; padding: 10px 11px; border-radius: var(--r-1); cursor: pointer; color: var(--ink-2); }
+.cmdk-item svg { color: var(--ink-3); flex: none; }
+.cmdk-item .t { flex: 1; font-size: var(--fs-1); color: var(--ink); }
+.cmdk-item .k { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.cmdk-item.sel { background: color-mix(in oklch, var(--accent) 14%, transparent); color: var(--ink); }
+.cmdk-item.sel svg { color: var(--accent); }
+.cmdk-empty { padding: 26px 10px; text-align: center; color: var(--ink-3); font-size: var(--fs-0); }
+
+/* ---------- toasts (glass — a transient chrome affordance, opaque data rules do not apply) ---------- */
+.toast-region { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; pointer-events: none; }
+.toast { display: flex; align-items: center; gap: 9px; padding: 10px 14px; border-radius: var(--r-2); font-size: var(--fs-0); font-weight: 500; color: var(--ink); animation: toast-in var(--t-base) var(--ease) both; }
+.toast svg { color: var(--ok); flex: none; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(6px); } }
 
 /* ---------- status chips (prototype §6 — §2.3 vocabulary) ---------- */
 .chip { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: var(--fs-0); font-family: var(--font-mono); border: 1px solid var(--line); background: var(--raised); color: var(--ink-2); white-space: nowrap; }
@@ -177,8 +208,9 @@ table.data code { font-size: var(--fs-0); color: var(--ink); background: var(--r
 .typ { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 6px; }
 
 /* ---------- forms, buttons, field rows (prototype §11) ---------- */
-.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--r-1); border: 1px solid var(--line); background: var(--raised); color: var(--ink); font-size: var(--fs-0); font-weight: 500; white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--r-1); border: 1px solid var(--line); background: var(--raised); color: var(--ink); font-size: var(--fs-0); font-weight: 500; white-space: nowrap; transition: border-color var(--t-fast) var(--ease), background-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
 .btn:hover { border-color: var(--ink-3); }
+.btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: .5; cursor: default; }
 .btn:disabled:hover { border-color: var(--line); }
 .btn.sm { height: 26px; padding: 0 10px; }
@@ -348,7 +380,12 @@ table.heat td:hover, table.heat td:focus-visible { transform: scale(1.08); z-ind
   .cmd .proj-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
   .cmd .pill { padding-inline: 5px }
   .cmd .toggle { gap: 4px; padding-inline: 5px }
+  .cmd .cmdk-trigger { gap: 4px; padding-inline: 5px }
+  .cmd .cmdk-trigger .kbd { display: none }
   .cmd-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+  .cmdk-modal { width: 96vw; max-height: 80vh }
+  .toast-region { left: 12px; right: 12px; bottom: 12px; align-items: stretch }
+  .toast { justify-content: center }
   .main { min-width: 0; overflow-x: hidden; padding: 16px 12px 64px }
   .screen { min-width: 0 }
   .screen-head { align-items: flex-start; margin-bottom: 16px }

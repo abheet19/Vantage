@@ -26,6 +26,14 @@ export const PROJECT: ProjectRow = {
   created_at: '2026-08-01T00:00:00.000Z',
 };
 
+/** A second project, so tests that switch between them (the command bar's project select) have somewhere to switch to. */
+export const PROJECT_2: ProjectRow = {
+  project_id: 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e',
+  name: 'Growth sandbox',
+  timezone: 'America/New_York',
+  created_at: '2026-08-22T00:00:00.000Z',
+};
+
 export const CATALOG: EventCatalog = {
   project: PROJECT.project_id,
   timezone: 'Asia/Kolkata',

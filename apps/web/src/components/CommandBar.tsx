@@ -4,14 +4,16 @@
  * Why it exists: 03-UI §4 keeps the project, its timezone and the theme controls in a glass command bar.
  * The timezone is shown at all times because every number below is computed in it (design §1.3); the
  * switcher is a real `<select>` overlaid on the pill, so changing project needs no popover code. The two
- * toggles are the manual light and reduce-transparency switches (F10).
+ * toggles are the manual light and reduce-transparency switches (F10). The command-palette trigger and the
+ * project-switch toast are both optional props (default to a no-op / silence) so `<CommandBar />` still
+ * renders standalone in isolation (tests, Storybook-style usage) without a parent shell wiring either up.
  */
 import type { JSX } from 'react';
 import { useTheme } from '../lib/theme.js';
 import { useProject } from '../state/ProjectContext.js';
 import { Icon } from './Icons.js';
 
-export function CommandBar(): JSX.Element {
+export function CommandBar({ onOpenPalette, toast }: { onOpenPalette?: () => void; toast?: (message: string) => void }): JSX.Element {
   const { projects, current, selectProject } = useProject();
   const { theme, flat, toggleTheme, toggleFlat } = useTheme();
   return (
@@ -20,7 +22,17 @@ export function CommandBar(): JSX.Element {
         <span className="dot" />
         <span className="proj-name">{current ? current.name : 'No project'}</span>
         <Icon name="i-chevd" style={{ color: 'var(--ink-3)' }} />
-        <select aria-label="Switch project" value={current?.project_id ?? ''} onChange={(e) => selectProject(e.target.value)} disabled={projects.length === 0}>
+        <select
+          aria-label="Switch project"
+          value={current?.project_id ?? ''}
+          onChange={(e) => {
+            const id = e.target.value;
+            selectProject(id);
+            const picked = projects.find((p) => p.project_id === id);
+            if (picked) toast?.(`Switched to ${picked.name}`);
+          }}
+          disabled={projects.length === 0}
+        >
           {projects.length === 0 && <option value="">No project</option>}
           {projects.map((p) => (
             <option key={p.project_id} value={p.project_id}>
@@ -34,6 +46,11 @@ export function CommandBar(): JSX.Element {
         {current ? current.timezone : '—'}
       </span>
       <span className="grow" />
+      <button type="button" className="pill cmdk-trigger" onClick={() => onOpenPalette?.()} aria-label="Open command palette" title="Jump to a screen or run an action">
+        <Icon name="i-search" />
+        <span className="cmd-label">Jump to…</span>
+        <kbd className="kbd">Ctrl K</kbd>
+      </button>
       <button className="toggle" onClick={toggleTheme} aria-pressed={theme === 'light'} aria-label="Toggle light theme">
         <Icon name="i-sun" />
         <span className="cmd-label">Light</span>
