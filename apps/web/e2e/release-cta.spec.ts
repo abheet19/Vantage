@@ -8,18 +8,38 @@
  */
 import { expect, test, type Page } from '@playwright/test';
 
+// The rail's eight entries (routes.ts ROUTES) with each screen's h1; the three configuration screens are
+// folded into Settings' sub-nav (SETTINGS_TABS) and are reached through it, not from the rail.
 const ROUTES = [
-  { nav: /^Ask\b/, heading: 'Ask' },
-  { nav: /^Funnel\b/, heading: 'Funnel' },
-  { nav: /^Retention\b/, heading: 'Retention' },
-  { nav: /^Paths\b/, heading: 'Paths' },
-  { nav: /^Trend\b/, heading: 'Trend' },
-  { nav: /^Events\b/, heading: 'Events' },
+  { nav: /^Ask\b/, heading: 'Ask Vantage a question' },
+  { nav: /^Funnel\b/, heading: 'Build a funnel by hand' },
+  { nav: /^Retention\b/, heading: 'Cohort retention grid' },
+  { nav: /^Paths\b/, heading: 'Top transitions' },
+  { nav: /^Trend\b/, heading: 'Event volume over time' },
+  { nav: /^Events\b/, heading: 'Event catalog' },
   { nav: /^History\b/, heading: 'Ask history' },
-  { nav: /^Projects\b/, heading: 'Projects & ingest' },
-  { nav: /^MCP\b/, heading: 'MCP' },
-  { nav: /^Health\b/, heading: 'Health' },
+  { nav: /^Settings\b/, heading: 'Workspace settings' },
 ] as const;
+const SETTINGS_TABS = [
+  { tab: 'Projects & ingest', heading: '#h-projects' },
+  { tab: 'MCP', heading: '#h-mcp' },
+  { tab: 'Health', heading: '#h-health' },
+] as const;
+
+async function visitEveryScreen(page: Page, afterEach: () => Promise<void> = async () => {}): Promise<void> {
+  const nav = page.getByRole('navigation', { name: 'Screens' });
+  for (const route of ROUTES) {
+    await nav.getByRole('button', { name: route.nav }).click();
+    await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
+    await afterEach();
+  }
+  const tabs = page.getByRole('navigation', { name: 'Settings sections' });
+  for (const tab of SETTINGS_TABS) {
+    await tabs.getByRole('button', { name: tab.tab }).click();
+    await expect(page.locator(tab.heading)).toBeVisible();
+    await afterEach();
+  }
+}
 
 function collectPageErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -30,12 +50,8 @@ function collectPageErrors(page: Page): string[] {
 test('all ten routes and global shell controls are wired', async ({ page }) => {
   const errors = collectPageErrors(page);
   await page.goto('/');
-  const nav = page.getByRole('navigation', { name: 'Screens' });
 
-  for (const route of ROUTES) {
-    await nav.getByRole('button', { name: route.nav }).click();
-    await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
-  }
+  await visitEveryScreen(page);
 
   const theme = page.getByRole('button', { name: 'Toggle light theme' });
   const themeBefore = await page.locator('html').getAttribute('data-theme');
@@ -136,11 +152,12 @@ test('320 px shell keeps every route reachable and its semantics intact', async 
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Screens' });
 
-  for (const route of ROUTES) {
-    await nav.getByRole('button', { name: route.nav }).click();
-    await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
+  await visitEveryScreen(page, async () => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  }
+  });
+  // The semantic check counts one h1 per screen; end on a rail screen (Settings nests its pane's own h1).
+  await nav.getByRole('button', { name: /^Ask\b/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Ask Vantage a question' })).toBeVisible();
 
   const semantics = await page.evaluate(() => {
     const visible = (element: HTMLElement): boolean => {

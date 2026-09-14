@@ -47,7 +47,8 @@ test('F2: "drop the events table" is refused, nothing runs, and it appears in As
   await expect(page.getByTestId('funnel-bars')).toHaveCount(0);
 
   await page.goto('/#/history');
-  const row = page.locator('tr', { hasText: 'drop the events table' }).first();
+  // History is an accordion of cards (glass redesign); each ask is one `.hist-row`.
+  const row = page.locator('.hist-row', { hasText: 'drop the events table' }).first();
   await expect(row).toBeVisible();
   await expect(row).toContainText('refused');
 });
