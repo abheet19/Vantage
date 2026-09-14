@@ -16,7 +16,7 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 [![CI](https://github.com/abheet19/Vantage/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/abheet19/Vantage/actions/workflows/ci.yml)
 [![Gate](https://img.shields.io/badge/gates_1--3-approved_%26_built-8a94a6)](#-where-this-project-is)
 [![LLM boundary](https://img.shields.io/badge/LLM_boundary-structural%2C_not_a_prompt-e0a128)](#the-one-hard-idea)
-[![Node](https://img.shields.io/badge/Node-22-339933?logo=nodedotjs&logoColor=white)](#-install)
+[![Node](https://img.shields.io/badge/Node-22-339933?logo=nodedotjs&logoColor=white)](#-quick-start)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 <br>
@@ -26,9 +26,9 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL_17-4169E1?style=for-the-badge&logo=postgresql&logoColor=white">
 <img alt="MCP" src="https://img.shields.io/badge/Model_Context_Protocol-000000?style=for-the-badge&logo=modelcontextprotocol&logoColor=white">
 <img alt="Zod" src="https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white">
-<img alt="React" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB">
+<img alt="React" src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB">
 <img alt="Vitest" src="https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white">
-<img alt="GitHub Actions" src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
+<img alt="Fly.io" src="https://img.shields.io/badge/Fly.io-24175B?style=for-the-badge&logo=flydotio&logoColor=white">
 
 <br><br>
 
@@ -44,26 +44,21 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 
 </div>
 
-[![Vantage hero demo — the flagship August question in the Ask box, then the answer resolving through the typed spec, the SQL · WHAT ACTUALLY RAN panel with its role vantage_reader · READ ONLY · timeout 5 s badge, and the funnel bars, recorded against the live deployment](docs/demo/vantage-demo.gif)](https://vantage-abheet.fly.dev)
+[![Vantage 60fps demo — the flagship August question compiled to a typed spec and SQL against the live deployment, then a glance at the Funnel and Retention screens in the glass UI](docs/media/vantage-demo.gif)](https://vantage-abheet.fly.dev)
 
-<div align="center"><sub>The whole pitch in one motion: ask the flagship question, and the answer resolves <b>spec → SQL · WHAT ACTUALLY RAN → number</b> — a typed spec (violet), a <b>parameterised</b> <code>SELECT</code> that runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>, and the funnel bars it produced. A real recording of the deployed app — reproduce it with <code>node tools/record-demo.mjs</code>.</sub></div>
+<div align="center"><sub>The whole pitch in one motion, recorded against the <b><a href="https://vantage-abheet.fly.dev">live deployment</a></b>: ask the flagship question, watch it resolve <b>spec → SQL · WHAT ACTUALLY RAN → number</b> — a typed spec (violet), a <b>parameterised</b> <code>SELECT</code> that runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>, and the funnel bars it produced — then a live glance at the <b>Funnel</b> and <b>Retention</b> screens. &nbsp;▶ <b><a href="docs/media/vantage-reel.mp4">Watch the crisp 60fps MP4</a></b> &nbsp;·&nbsp; reproduce it with <code>node tools/capture-reel60.mjs</code>.</sub></div>
 
 <br>
 
 [![The SQL · what actually ran panel: the role vantage_reader · READ ONLY · timeout 5 s badge over the parameterised SELECT the question compiled to](docs/media/vantage-ask.png)](https://vantage-abheet.fly.dev)
 
-<div align="center"><sub>The security money-shot: the model fills a typed spec (violet), the compiler turns it into a <b>parameterised</b> <code>SELECT</code> (<code>$1…$7</code>, no interpolation), and it runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>. A current local production-build capture — reproduce it with <code>node tools/capture-hero.mjs</code>.</sub></div>
-
-> [!TIP]
-> **Verification snapshot (10 September 2026):** [AI handoff and durable decisions](MEMORY.md) · [implementation context](CONTEXT.md) · [executed workflows and limits](docs/VERIFICATION.md) · [sanity checklist](docs/SANITY.md) · [setup/deploy operations](docs/DEPLOY.md). The 834-case release gate covers 680 API/contracts/integration cases, 139 web cases, and 15 production PostgreSQL/Chromium workflows. Its broad browser audit exercises every route and global control, all four manual query builders, editable Ask specs for all five grammar kinds, disclosures, table actions, snippets, copy/refresh controls, and every route at 320 px with no page overflow or unnamed visible control. Release builds expose their exact commit at `/health.release_sha`. A bounded mobile Lighthouse run against the local production build measured 99 performance, 100 accessibility, 100 SEO, and zero CLS. The production dependency audit reports zero vulnerabilities.
->
-> The two README PNG stills were refreshed from the current real **local production build** and isolated data. Existing GIFs are earlier recordings, retained for the longer walkthrough; they were not re-recorded in this pass.
+<div align="center"><sub>The security money-shot: the model fills a typed spec (violet), the compiler turns it into a <b>parameterised</b> <code>SELECT</code> (<code>$1…$9</code>, no interpolation), and it runs as <code>role vantage_reader · READ ONLY · timeout 5 s</code>. Captured against the live deployment — reproduce it with <code>node tools/capture-hero.mjs</code>.</sub></div>
 
 > [!NOTE]
 > **Where this project is.** Design and low-level design are approved and the build is **feature-complete**
 > (slices S1–S8; see [Gates](#-where-this-project-is)). Event ingestion and identity, the
 > funnel/retention/trend/paths/count query engine, the structural LLM→SQL boundary, the MCP server, the
-> full nine-plus-one-screen web UI, real CI, and a performance bench are all built and tested. Everything
+> full glass web UI, real CI, and a performance bench are all built, tested, and deployed to Fly. Everything
 > below the install line runs today. No number in this README is hand-written; the only badge that asserts
 > anything is the CI badge.
 
@@ -74,13 +69,15 @@ real SQL you can read — exposed as an **MCP server** so Claude can query it as
 
 - [The problem](#the-problem)
 - [The one hard idea](#the-one-hard-idea)
-- [Ask → spec → SQL → number](#-ask--spec--sql--number)
-- [Three things that make it engineering](#-three-things-that-make-it-engineering)
+- [Demo](#-demo)
+- [Quick start](#-quick-start)
+- [System design](#-system-design)
+  - [Ask → spec → SQL → number](#ask--spec--sql--number)
+  - [Three things that make it engineering](#three-things-that-make-it-engineering)
+  - [Architecture](#architecture)
 - [The MCP surface](#-the-mcp-surface)
-- [The surface](#-the-surface)
-- [Architecture](#-architecture)
+- [The glass surface](#-the-glass-surface)
 - [Tech stack](#-tech-stack)
-- [Install](#-install)
 - [Where this project is](#-where-this-project-is)
 - [What it does not do yet](#-what-it-does-not-do-yet)
 - [Design documents](#-design-documents)
@@ -112,7 +109,69 @@ question ─▶ model ─▶ text ─▶ [parse as QuerySpec or REFUSE] ─▶ [
 
 <div align="center"><sub>Four independent layers; remove any one and the others still hold. The full argument is in <a href="DESIGN.md"><b>DESIGN.md</b></a> (a self-contained extract of <a href="docs/01-DESIGN.md#4-the-llm-to-sql-layer-as-a-security-problem">01-DESIGN.md §4</a>) — the most interview-valuable document in this repo.</sub></div>
 
-## ⇄ Ask → spec → SQL → number
+## ▶ Demo
+
+The reel at the top of this page is a **real recording of the deployed app** — nothing mocked, staged,
+or re-timed. It runs the showcase flow end to end:
+
+1. **Ask** — the glass Ask screen with its example questions; the flagship one is clicked and `POST /v1/ask` fires.
+2. **Spec** — the model's answer arrives as a typed **`QuerySpec`** (violet): `kind: "funnel"`, a date range, ordered steps, a 7-day conversion window.
+3. **SQL · what actually ran** — the compiler's **parameterised `SELECT`** with its `role vantage_reader · READ ONLY · timeout 5 s` badge and the `$1…$9` bound parameters.
+4. **The number** — the funnel bars the question produced: **signup 13 → create_project 6 → invite_teammate 3** in a 7-day window, each bar carrying its share of the previous step and of the first.
+5. **A glance at the rest** — the **Funnel** builder and the **Retention** cohort heatmap, run live, so the SQL panel that powers Ask is visibly the same engine everywhere.
+
+| Format | File | Notes |
+|--------|------|-------|
+| **MP4** (crisp) | [`docs/media/vantage-reel.mp4`](docs/media/vantage-reel.mp4) | H.264, 1280×800, **true 60 fps** (motion-interpolated), ~1.8 MB |
+| **GIF** (inline) | [`docs/media/vantage-demo.gif`](docs/media/vantage-demo.gif) | looping, ~720 px, the embed above |
+
+```powershell
+# regenerate both from the LIVE deployment (Playwright drives it, ffmpeg encodes 60fps + gif)
+node tools/capture-reel60.mjs
+# or point it at a local web build:
+$env:VANTAGE_URL = 'http://127.0.0.1:4200'; node tools/capture-reel60.mjs
+```
+
+<sub>ffmpeg is auto-detected (PATH → the winget install → <code>$FFMPEG</code>). The 60 fps is done with <code>ffmpeg -r 60</code> and the <code>minterpolate</code> filter; the GIF is palette-quantised for size. See <a href="docs/DEMO.md">docs/DEMO.md</a> for the 90-second live-narration script (ask → refuse a hostile question → <code>psql</code> denial → the MCP path).</sub>
+
+## ⬇ Quick start
+
+```powershell
+git clone https://github.com/abheet19/Vantage.git; cd Vantage
+npm install --legacy-peer-deps
+$env:PGPASSWORD = '<your postgres superuser password>'
+.\tools\db-setup.ps1      # creates the database and the three roles (owner / app / reader) idempotently
+npm run check             # typecheck → lint → unit → integration (embedded Postgres 17) → coverage gates
+
+# run the API against the hand-checked fixture, no LLM key needed:
+npm run build; npm run migrate; npm run fixture:load   # prints the demo project id
+$env:VANTAGE_LLM = 'none'; npm run start:api            # http://127.0.0.1:4100
+
+# run the web UI (the glass front end) against that API:
+npm run web:dev                                         # http://127.0.0.1:4200
+
+# query it as an MCP server from Claude Desktop / Code:
+npm run mcp:install -- --dry-run                        # prints the config + `claude mcp add` line
+```
+
+> [!NOTE]
+> `npm run seed` loads the demo's deterministic ~200k-event synthetic product
+> (`signup → create_project → invite_teammate`, realistic drop-off, decaying retention, a couple of
+> anonymous→identified stitches, one device ~3 h out of clock, a few late arrivals) into a `Demo`
+> project through the real ingest path. It needs the API/DB up (`npm run build; npm run migrate` first),
+> prints the project id and a ready-to-paste funnel query, and is idempotent: every event carries a
+> stable `insert_id`, so a second run reuses the same `Demo` project and dedupes to zero new rows. Cap
+> the volume with `npm run seed -- --events 5000`. `npm run fixture:load` (above) loads the smaller
+> hand-checked fixture instead.
+
+## ⌂ System design
+
+The whole product is one seam held open on purpose: **natural language on one side, a database on the
+other, and a typed grammar wedged between them so nothing the model says can ever become SQL.** The
+three pieces below — the flow, the correctness gotchas it defends against, and the module/role
+topology — are the interview-relevant engineering.
+
+### Ask → spec → SQL → number
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#1c1a2e','primaryTextColor':'#ece9f5','primaryBorderColor':'#e0a128','lineColor':'#a99bd1','secondaryColor':'#241f3a','tertiaryColor':'#2a2540','fontFamily':'Inter, system-ui, sans-serif'}}}%%
@@ -146,7 +205,7 @@ sequenceDiagram
 
 <div align="center"><sub>The number the question above resolves to — <b>signup 13 → create_project 6 → invite_teammate 3</b> in a 7-day window — every bar carrying its share of the previous step and of the first. These are the hand-checked fixture's numbers (<a href="apps/api/fixtures/august.expected.md">august.expected.md</a>: <i>"7 days: 13 → 6 → 3"</i>); the 14-day window is 13 → 8 → 4.</sub></div>
 
-## ◈ Three things that make it engineering
+### Three things that make it engineering
 
 | | The gotcha | What Vantage does |
 |-|------------|-------------------|
@@ -154,43 +213,13 @@ sequenceDiagram
 | **Funnels that stay correct and fast** | Self-joins explode on power users; a UTC `date_trunc` puts a 22:00 Mumbai signup in yesterday's cohort; a 14-day window counted from the *second* signup | Window-function CTEs over per-person streams, `AT TIME ZONE` before bucketing, first-occurrence semantics, two covering indexes tied to specific queries, and a **hand-computed fixture** whose boundary rows fail by name ([§3](docs/01-DESIGN.md#3-the-query-engine)) |
 | **Honest results** | A timeout returns a 200 with half the rows; last week's cohort looks "complete" | Every result carries `status ∈ {complete, empty, timed_out, truncated, refused}`, a `data_until` watermark, and `in_progress` computed **in the SQL**; a timeout returns *nothing*, never a partial |
 
-## ⌬ The MCP surface
-
-Eight read-only tools — `list_projects`, `list_events`, `describe_event`, `run_funnel`,
-`run_retention`, `run_trend`, `run_paths`, `explain_query` — over stdio, every one annotated
-`readOnlyHint: true, destructiveHint: false`. There is **no `run_sql` and no `ask` tool**: the MCP
-client's own model does the English-to-spec step, so Vantage needs no LLM key of its own to be
-fully usable from Claude Desktop or Claude Code. Every tool result carries the SQL it ran.
-
-```powershell
-# registers Vantage in Claude Desktop on Windows using an absolute node path (the bare-npx pitfall is avoided)
-npm run mcp:install                  # writes claude_desktop_config.json (merges around other servers, backs up first)
-npm run mcp:install -- --dry-run     # or preview it, and the `claude mcp add` one-liner, without writing
-```
-
-## ✦ The surface
-
-An "observatory": opaque data surfaces, glass only on the navigation layer, and a **query card**
-that reads *question → spec → SQL → number* before the eye reaches a chart. Every number wears its
-status in the same typographic voice.
-
-<div align="center">
-
-**[▶ Open the interactive prototype](docs/prototype/vantage.html)** — every screen (Ask, Funnel, Retention, Paths, Events, History, Projects, MCP, Health) and every flow, clickable
-
-</div>
-
-| Ask | Refused | Retention | History |
-|-----|---------|-----------|---------|
-| spec (violet) → SQL (amber) → bars → `● Complete · 0.41 s` | `⊘ Refused` with the raw model output; nothing ran | global-scale heatmap, hatched *in progress* cells | every ask: raw output · spec · SQL · decision · elapsed |
-
-## ⌂ Architecture
+### Architecture
 
 ```mermaid
 %%{init: {'theme':'base','themeVariables':{'primaryColor':'#1c1a2e','primaryTextColor':'#ece9f5','primaryBorderColor':'#e0a128','lineColor':'#a99bd1','fontFamily':'Inter, system-ui, sans-serif'}}}%%
 flowchart LR
   SDK[Your app / SDK<br/>POST /v1/events]:::io
-  WEB[Web SPA<br/>Ask · Funnel · Retention · Paths · History]:::io
+  WEB[Web SPA · glass UI<br/>Ask · Funnel · Retention · Paths · Trend · Events · History · Settings]:::io
   MCP[Claude Desktop / Code<br/>MCP client]:::io
   subgraph api[NestJS · 127.0.0.1]
     direction TB
@@ -263,6 +292,39 @@ person and the reason. [02-LLD.md §7.2](docs/02-LLD.md#72-sql-correctness-strat
 
 </details>
 
+## ⌬ The MCP surface
+
+Eight read-only tools — `list_projects`, `list_events`, `describe_event`, `run_funnel`,
+`run_retention`, `run_trend`, `run_paths`, `explain_query` — over stdio, every one annotated
+`readOnlyHint: true, destructiveHint: false`. There is **no `run_sql` and no `ask` tool**: the MCP
+client's own model does the English-to-spec step, so Vantage needs no LLM key of its own to be
+fully usable from Claude Desktop or Claude Code. Every tool result carries the SQL it ran.
+
+```powershell
+# registers Vantage in Claude Desktop on Windows using an absolute node path (the bare-npx pitfall is avoided)
+npm run mcp:install                  # writes claude_desktop_config.json (merges around other servers, backs up first)
+npm run mcp:install -- --dry-run     # or preview it, and the `claude mcp add` one-liner, without writing
+```
+
+## ✦ The glass surface
+
+The shipped UI is an **"observatory": opaque data surfaces, glass only on the navigation layer**, and a
+**query card** that reads *question → spec → SQL → number* before the eye reaches a chart. Every number
+wears its status in the same typographic voice. The redesign adds a **`Ctrl K` command palette** ("Jump
+to…"), a collapsible glass rail, and Bricolage/Manrope type. Eight rail screens — **Ask, Funnel,
+Retention, Paths, Trend, Events, History**, and a **Settings** shell that folds **Projects & ingest, MCP,
+and Health** behind a sub-nav (each still its own deep-linkable route).
+
+<div align="center">
+
+**[▶ Open the interactive prototype](docs/prototype/vantage.html)** — every screen and every flow, clickable
+
+</div>
+
+| Ask | Refused | Retention | History |
+|-----|---------|-----------|---------|
+| spec (violet) → SQL (amber) → bars → `● Complete · 0.41 s` | `⊘ Refused` with the raw model output; nothing ran | cohort heatmap, hatched *in progress* cells | every ask: raw output · spec · SQL · decision · elapsed |
+
 ## ⚙ Tech stack
 
 | Layer | Choice | Why |
@@ -273,34 +335,11 @@ person and the reason. [02-LLD.md §7.2](docs/02-LLD.md#72-sql-correctness-strat
 | MCP | `@modelcontextprotocol/sdk`, stdio | the spec's own recommendation for local servers |
 | LLM | pluggable port: Anthropic API (paid, optional) · Ollama (free, local) · `none` (canned demo specs) | $0 to run; the MCP path needs no model at all |
 | Web | React 19, Vite; purpose-built SVG/HTML for funnel bars, retention grid, transitions table | the SQL panel is the product, not chart variety |
+| Deploy | Docker + Caddy on **Fly.io**; release build stamps its commit at `/health.release_sha` | one container, health-gated, reproducible |
 | Tests | Vitest, fast-check, supertest, a Postgres service container in CI | property tests for the compiler; a hand-computed fixture for correctness |
 
-## ⬇ Install
-
-```powershell
-cd D:\code\Vantage
-npm install --legacy-peer-deps
-$env:PGPASSWORD = '<your postgres superuser password>'
-.\tools\db-setup.ps1      # creates the database and the three roles (owner / app / reader) idempotently
-npm run check             # typecheck → lint → unit → integration (embedded Postgres 17) → coverage gates
-
-# run the API against the hand-checked fixture, no LLM key needed:
-npm run build; npm run migrate; npm run fixture:load   # prints the demo project id
-$env:VANTAGE_LLM = 'none'; npm run start:api            # http://127.0.0.1:4100
-
-# query it as an MCP server from Claude Desktop / Code:
-npm run mcp:install -- --dry-run                        # prints the config + `claude mcp add` line
-```
-
-> [!NOTE]
-> `npm run seed` loads the demo's deterministic ~200k-event synthetic product
-> (`signup → create_project → invite_teammate`, realistic drop-off, decaying retention, a couple of
-> anonymous→identified stitches, one device ~3 h out of clock, a few late arrivals) into a `Demo`
-> project through the real ingest path. It needs the API/DB up (`npm run build; npm run migrate` first),
-> prints the project id and a ready-to-paste funnel query, and is idempotent: every event carries a
-> stable `insert_id`, so a second run reuses the same `Demo` project and dedupes to zero new rows. Cap
-> the volume with `npm run seed -- --events 5000`. `npm run fixture:load` (above) loads the smaller
-> hand-checked fixture instead.
+> [!TIP]
+> **Verification snapshot (10 September 2026):** [AI handoff and durable decisions](MEMORY.md) · [implementation context](CONTEXT.md) · [executed workflows and limits](docs/VERIFICATION.md) · [sanity checklist](docs/SANITY.md) · [setup/deploy operations](docs/DEPLOY.md). The 834-case release gate covers 680 API/contracts/integration cases, 139 web cases, and 15 production PostgreSQL/Chromium workflows. Its broad browser audit exercises every route and global control, all four manual query builders, editable Ask specs for all five grammar kinds, disclosures, table actions, snippets, copy/refresh controls, and every route at 320 px with no page overflow or unnamed visible control. Release builds expose their exact commit at `/health.release_sha`. A bounded mobile Lighthouse run against the local production build measured 99 performance, 100 accessibility, 100 SEO, and zero CLS. The production dependency audit reports zero vulnerabilities.
 
 ## ◬ Where this project is
 
@@ -334,9 +373,10 @@ the model or from MCP clients · session replay or autocapture · partitioning a
 | [01-DESIGN.md](docs/01-DESIGN.md) | event model, idempotent ingestion argued, the real funnel and retention SQL, the LLM boundary as a security problem, MCP surface, architecture, scope, demo, risks |
 | [02-LLD.md](docs/02-LLD.md) | NestJS module map, full schema with the reason for every index, Zod contracts, 14 invariants, the query grammar as a type, MCP tool contract, the hand-computed fixture strategy, slices, adversarial plan |
 | [03-UI.md](docs/03-UI.md) | the "Observatory glass" design language, status vocabulary with exact copy, every screen and flow |
-| [prototype/vantage.html](docs/prototype/vantage.html) | the clickable high-fidelity prototype the build must port |
+| [prototype/vantage.html](docs/prototype/vantage.html) | the clickable high-fidelity prototype the build ported |
 | [research/](docs/research/) | dated research brief (analytics UIs, local databases, MCP 2026-07-28, NestJS 12, correctness gotchas, LLM-to-SQL prior art) |
-| [tools/record-demo.mjs](tools/record-demo.mjs) | regenerates the hero GIF at the top of this file. `node tools/record-demo.mjs` drives the live deployment with Playwright, captures PNG frames, and [tools/frames-to-gif.py](tools/frames-to-gif.py) (Pillow) assembles them into `docs/demo/vantage-demo.gif`. Point it at a local build with `VANTAGE_URL=http://127.0.0.1:4200`; no ffmpeg required |
+| [tools/capture-reel60.mjs](tools/capture-reel60.mjs) | records the **60fps demo reel** at the top of this file. `node tools/capture-reel60.mjs` drives the live deployment with Playwright, records the showcase flow as `.webm`, and ffmpeg encodes a motion-interpolated 60fps `docs/media/vantage-reel.mp4` plus a looping `docs/media/vantage-demo.gif`. Point it at a local build with `VANTAGE_URL=http://127.0.0.1:4200`; ffmpeg is auto-detected (PATH → winget → `$FFMPEG`) |
+| [tools/capture-hero.mjs](tools/capture-hero.mjs) | recaptures the two PNG stills (`vantage-ask.png`, `vantage-funnel.png`) from the live deployment |
 
 ---
 
