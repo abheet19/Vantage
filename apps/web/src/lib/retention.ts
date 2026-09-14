@@ -18,6 +18,23 @@ export function heatLevel(pct: number | null): number {
   return Math.max(0, Math.min(5, Math.floor(pct * 6)));
 }
 
+/**
+ * The continuous cell fill on the global 0–100 % teal ramp (03-UI §4, glass-redesign match): the alpha is
+ * the retained fraction itself, not one of six buckets, so equal retention is always the exact same colour.
+ * A null (empty-cohort) percentage gets a bare transparent fill and reads "—". Above 55 % the ink flips to
+ * the dark heat ink for contrast on the saturated teal — the same threshold the prototype uses.
+ */
+export function heatFill(pct: number | null): { background: string; color: string } {
+  if (pct === null || !Number.isFinite(pct)) {
+    return { background: 'color-mix(in srgb, var(--teal) 4%, transparent)', color: 'var(--ink-2)' };
+  }
+  const clamped = Math.max(0, Math.min(1, pct));
+  return {
+    background: `color-mix(in srgb, var(--teal) ${Math.round(clamped * 85)}%, transparent)`,
+    color: clamped > 0.55 ? 'var(--heat-ink-dark)' : 'var(--ink)',
+  };
+}
+
 /** The compact number a cell shows: the retained percentage as a whole number, or "—" for an empty cohort. */
 export function cellText(cell: Pick<RetentionCell, 'pct'>): string {
   return cell.pct === null || !Number.isFinite(cell.pct) ? '—' : `${Math.round(cell.pct * 100)}`;

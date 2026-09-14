@@ -9,7 +9,7 @@
  * What it must never do: redact or reshape a row (the log is shown as written), or hide the decision — the
  * decision colour and word are the point.
  */
-import { Fragment, useState, type JSX } from 'react';
+import { useState, type JSX } from 'react';
 import type { AskRow, ProjectRow } from '@vantage/contracts';
 import { Chip } from '../components/Chip.js';
 import { Icon } from '../components/Icons.js';
@@ -19,36 +19,41 @@ import { formatClock, formatElapsed } from '../lib/format.js';
 import { highlightJson, highlightSql } from '../lib/highlight.js';
 import { useAsks } from '../lib/hooks.js';
 
-function ExpandedRow({ row }: { row: AskRow }): JSX.Element {
+function AccordionBody({ row }: { row: AskRow }): JSX.Element {
   return (
-    <tr className="expand">
-      <td colSpan={6}>
-        <div className="grid3">
-          <div className="cell raw">
-            <h3>Raw model output</h3>
-            <pre>{row.raw_output ?? '(none)'}</pre>
-          </div>
-          <div className="cell spec">
-            <h3>Spec</h3>
-            <pre dangerouslySetInnerHTML={{ __html: row.spec ? highlightJson(JSON.stringify(row.spec, null, 2)) : '(no spec — refused before one existed)' }} />
-          </div>
-          <div className="cell sql">
-            <h3>SQL</h3>
-            <pre dangerouslySetInnerHTML={{ __html: row.sql ? highlightSql(row.sql) : '(nothing ran)' }} />
-          </div>
-        </div>
-        <div className="small faint mono" style={{ marginTop: 12 }}>
-          adapter {row.adapter}
-          {row.model ? ` · model ${row.model}` : ''}
-          {row.error_code ? ` · ${row.error_code}` : ''}
-        </div>
-      </td>
-    </tr>
+    <div className="hist-body-in">
+      <div className="cell raw">
+        <h3>Raw model output</h3>
+        <pre>{row.raw_output ?? '(none)'}</pre>
+      </div>
+      <div className="cell spec">
+        <h3>Spec</h3>
+        <pre dangerouslySetInnerHTML={{ __html: row.spec ? highlightJson(JSON.stringify(row.spec, null, 2)) : '(no spec — refused before one existed)' }} />
+      </div>
+      <div className="cell sql">
+        <h3>SQL</h3>
+        <pre dangerouslySetInnerHTML={{ __html: row.sql ? highlightSql(row.sql) : '(nothing ran)' }} />
+      </div>
+      <div className="small faint mono">
+        adapter {row.adapter}
+        {row.model ? ` · model ${row.model}` : ''}
+        {row.error_code ? ` · ${row.error_code}` : ''}
+      </div>
+    </div>
   );
 }
 
+type Filter = 'all' | 'ran' | 'refused';
+const FILTERS: ReadonlyArray<{ id: Filter; label: string }> = [
+  { id: 'all', label: 'All' },
+  { id: 'ran', label: 'Ran' },
+  { id: 'refused', label: 'Refused' },
+];
+
 function HistoryTable({ project, rows }: { project: ProjectRow; rows: AskRow[] }): JSX.Element {
   const [open, setOpen] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
+  const shown = rows.filter((r) => (filter === 'all' ? true : filter === 'ran' ? r.decision === 'ran' : r.decision !== 'ran'));
   return (
     <div className="panel">
       <div className="panel-h">
@@ -57,43 +62,45 @@ function HistoryTable({ project, rows }: { project: ProjectRow; rows: AskRow[] }
         <span className="grow" />
         <span className="small faint">expand a row for raw output · spec · SQL</span>
       </div>
-      <div style={{ overflowX: 'auto' }}>
-        <table className="data">
-          <thead>
-            <tr>
-              <th className="r">Time</th>
-              <th>Question</th>
-              <th>Decision</th>
-              <th>Status</th>
-              <th className="r">Elapsed</th>
-              <th aria-label="Expand" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const isOpen = open === row.ask_id;
-              return (
-                <Fragment key={row.ask_id}>
-                  <tr className="clickable" onClick={() => setOpen(isOpen ? null : row.ask_id)}>
-                    <td className="r">{formatClock(row.asked_at, project.timezone, true)}</td>
-                    <td>{row.question}</td>
-                    <td>
-                      <span className={`dec ${row.decision}`}>{row.decision}</span>
-                    </td>
-                    <td>{row.status ?? '—'}</td>
-                    <td className="r">{formatElapsed(row.elapsed_ms)}</td>
-                    <td className="r">
-                      <button type="button" className="table-action" aria-label={`Details for ${row.question}`} aria-expanded={isOpen}>
-                        <Icon name={isOpen ? 'i-chevd' : 'i-chev'} />
-                      </button>
-                    </td>
-                  </tr>
-                  {isOpen && <ExpandedRow row={row} />}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="panel-b">
+        <div className="hist-filters" role="group" aria-label="Filter asks by decision">
+          {FILTERS.map((f) => (
+            <button key={f.id} type="button" className="chipbtn" aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
+              {f.label}
+            </button>
+          ))}
+        </div>
+        <div className="hist-cols" aria-hidden="true">
+          <span style={{ width: 64 }}>Time</span>
+          <span className="grow">Question</span>
+          <span style={{ width: 64 }}>Decision</span>
+          <span style={{ width: 64 }}>Status</span>
+          <span style={{ width: 56 }}>Elapsed</span>
+          <span style={{ width: 14 }} />
+        </div>
+        <div className="hist-list">
+          {shown.map((row) => {
+            const isOpen = open === row.ask_id;
+            const ran = row.decision === 'ran';
+            return (
+              <div className="hist-row" key={row.ask_id} data-open={isOpen}>
+                <button type="button" className="hist-row-head" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : row.ask_id)}>
+                  <span className="hist-time">{formatClock(row.asked_at, project.timezone, true)}</span>
+                  <span className="hist-q">{row.question}</span>
+                  <span className={`hist-dec pill ${ran ? 'good' : 'bad'} dot`} style={{ width: 64, justifyContent: 'center' }}>
+                    {row.decision}
+                  </span>
+                  <span className="hist-status">{row.status ?? (ran ? 'complete' : '—')}</span>
+                  <span className="hist-elapsed">{formatElapsed(row.elapsed_ms)}</span>
+                  <Icon name="i-chev" className="i hist-chev" />
+                </button>
+                <div className="hist-body">
+                  <div className="inner">{isOpen && <AccordionBody row={row} />}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

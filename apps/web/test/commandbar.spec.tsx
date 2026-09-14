@@ -71,7 +71,9 @@ describe('CommandBar', () => {
     const toast = vi.fn();
     renderBar({ toast }, [PROJECT, PROJECT_2]);
     await waitFor(() => expect(screen.getByTitle('Switch project')).toHaveTextContent('August fixture'));
-    await userEvent.selectOptions(screen.getByLabelText('Switch project'), PROJECT_2.project_id);
+    // The switcher is a click popover (glass-redesign): open it, then pick the row.
+    await userEvent.click(screen.getByTitle('Switch project'));
+    await userEvent.click(screen.getByRole('menuitemradio', { name: /Growth sandbox/ }));
     expect(toast).toHaveBeenCalledWith('Switched to Growth sandbox');
     await waitFor(() => expect(screen.getByTitle('Switch project')).toHaveTextContent('Growth sandbox'));
   });
@@ -79,7 +81,8 @@ describe('CommandBar', () => {
   it('switching projects without a toast handler still switches', async () => {
     renderBar({}, [PROJECT, PROJECT_2]);
     await waitFor(() => expect(screen.getByTitle('Switch project')).toHaveTextContent('August fixture'));
-    await userEvent.selectOptions(screen.getByLabelText('Switch project'), PROJECT_2.project_id);
+    await userEvent.click(screen.getByTitle('Switch project'));
+    await userEvent.click(screen.getByRole('menuitemradio', { name: /Growth sandbox/ }));
     await waitFor(() => expect(screen.getByTitle('Switch project')).toHaveTextContent('Growth sandbox'));
   });
 });

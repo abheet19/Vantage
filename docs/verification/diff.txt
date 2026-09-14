@@ -1,0 +1,236 @@
+[desktop/ask] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+[desktop/ask] cmdk-trigger DIFF:
+    _box: art="155x36" loc="157x36"
+[desktop/ask] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[desktop/ask] panel: art=present loc=MISSING
+[desktop/ask] panel-title: art=present loc=MISSING
+[desktop/ask] chip: art=present loc=MISSING
+[desktop/ask] btn-primary: art=present loc=MISSING
+[desktop/funnel] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+[desktop/funnel] cmdk-trigger DIFF:
+    _box: art="155x36" loc="157x36"
+[desktop/funnel] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[desktop/funnel] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="1128x437" loc="1160x412"
+[desktop/funnel] panel-title DIFF:
+    _box: art="115x23" loc="41x22"
+[desktop/funnel] chip DIFF:
+    gap: art="normal" loc="6px"
+[desktop/funnel] field-label DIFF:
+    _box: art="261x17" loc="213x17"
+[desktop/funnel] seg DIFF:
+    _box: art="261x39" loc="213x39"
+[desktop/retention] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+[desktop/retention] cmdk-trigger DIFF:
+    _box: art="155x36" loc="157x36"
+[desktop/retention] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[desktop/retention] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="1128x285" loc="1160x237"
+[desktop/retention] panel-title DIFF:
+    _box: art="49x22" loc="57x22"
+[desktop/retention] chip DIFF:
+    gap: art="normal" loc="6px"
+    _box: art="137x23" loc="117x23"
+[desktop/retention] field-label DIFF:
+    _box: art="169x17" loc="175x17"
+[desktop/retention] seg DIFF:
+    _box: art="169x39" loc="175x39"
+[desktop/retention] seg-btn-on DIFF:
+    _box: art="57x31" loc="46x31"
+[desktop/history] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+[desktop/history] cmdk-trigger DIFF:
+    _box: art="155x36" loc="157x36"
+[desktop/history] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[desktop/history] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="1128x534" loc="1160x6263"
+[desktop/history] panel-title DIFF:
+    _box: art="211x23" loc="130x22"
+[desktop/history] chip DIFF:
+    gap: art="normal" loc="6px"
+[desktop/settings] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+[desktop/settings] cmdk-trigger DIFF:
+    _box: art="155x36" loc="157x36"
+[desktop/settings] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[desktop/settings] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="1128x764" loc="1160x722"
+[desktop/settings] panel-title DIFF:
+    _box: art="419x23" loc="86x22"
+[desktop/settings] chip DIFF:
+    gap: art="normal" loc="6px"
+    _box: art="25x23" loc="130x23"
+[desktop/settings] field-label DIFF:
+    _box: art="419x17" loc="454x17"
+[mobile/ask] topbar DIFF:
+    padding: art="11px 20px" loc="10px 12px"
+    gap: art="10px" loc="6px"
+    _box: art="307x146" loc="319x95"
+[mobile/ask] rail DIFF:
+    padding: art="14px 10px" loc="10px 6px"
+    _box: art="68x812" loc="56x812"
+[mobile/ask] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+    _box: art="47x41" loc="43x41"
+[mobile/ask] proj-btn DIFF:
+    _box: art="147x36" loc="130x36"
+[mobile/ask] cmdk-trigger DIFF:
+    _box: art="155x36" loc="37x30"
+[mobile/ask] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[mobile/ask] screen-head-h1 DIFF:
+    _box: art="279x78" loc="295x39"
+[mobile/ask] eyebrow DIFF:
+    _box: art="279x17" loc="295x17"
+[mobile/ask] panel: art=present loc=MISSING
+[mobile/ask] panel-title: art=present loc=MISSING
+[mobile/ask] chip: art=present loc=MISSING
+[mobile/ask] btn-primary: art=present loc=MISSING
+[mobile/funnel] topbar DIFF:
+    padding: art="11px 20px" loc="10px 12px"
+    gap: art="10px" loc="6px"
+    _box: art="307x146" loc="319x95"
+[mobile/funnel] rail DIFF:
+    padding: art="14px 10px" loc="10px 6px"
+    _box: art="68x812" loc="56x812"
+[mobile/funnel] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+    _box: art="47x41" loc="43x41"
+[mobile/funnel] proj-btn DIFF:
+    _box: art="147x36" loc="130x36"
+[mobile/funnel] cmdk-trigger DIFF:
+    _box: art="155x36" loc="37x30"
+[mobile/funnel] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[mobile/funnel] screen-head-h1 DIFF:
+    _box: art="279x39" loc="295x39"
+[mobile/funnel] eyebrow DIFF:
+    _box: art="279x17" loc="295x17"
+[mobile/funnel] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="279x720" loc="295x695"
+[mobile/funnel] panel-title DIFF:
+    _box: art="115x23" loc="41x22"
+[mobile/funnel] chip DIFF:
+    gap: art="normal" loc="6px"
+[mobile/funnel] field-label DIFF:
+    _box: art="237x17" loc="269x17"
+[mobile/funnel] seg DIFF:
+    _box: art="237x39" loc="269x39"
+[mobile/funnel] seg-btn-on DIFF:
+    padding: art="6px 12px" loc="6px"
+    _box: art="89x31" loc="86x31"
+[mobile/retention] topbar DIFF:
+    padding: art="11px 20px" loc="10px 12px"
+    gap: art="10px" loc="6px"
+    _box: art="307x146" loc="319x95"
+[mobile/retention] rail DIFF:
+    padding: art="14px 10px" loc="10px 6px"
+    _box: art="68x812" loc="56x812"
+[mobile/retention] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+    _box: art="47x41" loc="43x41"
+[mobile/retention] proj-btn DIFF:
+    _box: art="147x36" loc="130x36"
+[mobile/retention] cmdk-trigger DIFF:
+    _box: art="155x36" loc="37x30"
+[mobile/retention] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[mobile/retention] screen-head-h1 DIFF:
+    _box: art="279x39" loc="295x39"
+[mobile/retention] eyebrow DIFF:
+    _box: art="279x17" loc="295x17"
+[mobile/retention] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="279x683" loc="295x680"
+[mobile/retention] panel-title DIFF:
+    _box: art="49x22" loc="57x22"
+[mobile/retention] chip DIFF:
+    gap: art="normal" loc="6px"
+    _box: art="137x23" loc="117x23"
+[mobile/retention] field-label DIFF:
+    _box: art="237x17" loc="269x17"
+[mobile/retention] seg DIFF:
+    _box: art="237x39" loc="269x39"
+[mobile/retention] seg-btn-on DIFF:
+    padding: art="6px 12px" loc="6px"
+    _box: art="57x31" loc="86x31"
+[mobile/history] topbar DIFF:
+    padding: art="11px 20px" loc="10px 12px"
+    gap: art="10px" loc="6px"
+    _box: art="307x146" loc="319x95"
+[mobile/history] rail DIFF:
+    padding: art="14px 10px" loc="10px 6px"
+    _box: art="68x812" loc="56x812"
+[mobile/history] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+    _box: art="47x41" loc="43x41"
+[mobile/history] proj-btn DIFF:
+    _box: art="147x36" loc="130x36"
+[mobile/history] cmdk-trigger DIFF:
+    _box: art="155x36" loc="37x30"
+[mobile/history] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[mobile/history] screen-head-h1 DIFF:
+    _box: art="279x39" loc="295x39"
+[mobile/history] eyebrow DIFF:
+    _box: art="279x17" loc="295x17"
+[mobile/history] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="279x1141" loc="295x33315"
+[mobile/history] panel-title DIFF:
+    _box: art="211x23" loc="130x22"
+[mobile/history] chip DIFF:
+    gap: art="normal" loc="6px"
+[mobile/settings] topbar DIFF:
+    padding: art="11px 20px" loc="10px 12px"
+    gap: art="10px" loc="6px"
+    _box: art="307x146" loc="319x95"
+[mobile/settings] rail DIFF:
+    padding: art="14px 10px" loc="10px 6px"
+    _box: art="68x812" loc="56x812"
+[mobile/settings] rail-item-current DIFF:
+    borderColor: art="rgba(234, 179, 56, 0.3)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.3)"
+    _box: art="47x41" loc="43x41"
+[mobile/settings] proj-btn DIFF:
+    _box: art="147x36" loc="130x36"
+[mobile/settings] cmdk-trigger DIFF:
+    _box: art="155x36" loc="37x30"
+[mobile/settings] icon-btn DIFF:
+    padding: art="1px 6px" loc="0px"
+    borderColor: art="rgba(184, 121, 15, 0.35)" loc="color(srgb 0.917647 0.701961 0.219608 / 0.38)"
+[mobile/settings] screen-head-h1 DIFF:
+    _box: art="279x39" loc="295x39"
+[mobile/settings] eyebrow DIFF:
+    _box: art="279x17" loc="295x17"
+[mobile/settings] panel DIFF:
+    padding: art="20px" loc="0px"
+    _box: art="279x1448" loc="295x4221"
+[mobile/settings] panel-title DIFF:
+    _box: art="426x23" loc="86x22"
+[mobile/settings] chip DIFF:
+    gap: art="normal" loc="6px"
+    _box: art="25x23" loc="130x23"
+[mobile/settings] field-label DIFF:
+    _box: art="426x17" loc="117x17"

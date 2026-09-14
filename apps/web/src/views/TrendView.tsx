@@ -72,13 +72,12 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
   }, [canRun, spec]);
 
   return (
-    <div className={`cols${collapsed ? ' collapsed' : ''}`}>
-      <div className="stack">
-        <div className="panel">
-          <div className="panel-h">
-            <h2>Series</h2>
+    <>
+      <div className="panel">
+        <div className="panel-h">
+          <h2>Series</h2>
             <span className="grow" />
-            <button className="btn primary" onClick={execute} disabled={!canRun || run.kind === 'loading'}>
+            <button className="btn primary sm" onClick={execute} disabled={!canRun || run.kind === 'loading'}>
               <Icon name="i-play" />
               {run.kind === 'loading' ? 'Running…' : 'Run trend'}
             </button>
@@ -133,8 +132,8 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
               </div>
             </div>
           </div>
-        </div>
-
+      </div>
+      <div className={`cols${collapsed ? ' collapsed' : ''}`}>
         <div className="panel">
           <div className="panel-h">
             <h2>Chart</h2>
@@ -153,21 +152,20 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
             </div>
           )}
         </div>
+        <aside className="panel side">
+          <div className="panel-h">
+            <h2 style={{ color: 'var(--accent)' }}>SQL</h2>
+            <Chip tone="faint">{run.kind === 'done' ? `$1…$${run.result.params.length} bound` : 'compiler output'}</Chip>
+            <button className="btn sm ghost collapse" onClick={() => setCollapsed((c) => !c)} aria-label={collapsed ? 'Expand SQL panel' : 'Collapse SQL panel'} aria-pressed={collapsed}>
+              <Icon name="i-chev" />
+            </button>
+          </div>
+          <div className="panel-b">
+            {run.kind === 'done' ? <SqlView sql={run.result.sql} params={run.result.params} /> : <pre className="sqlpre faint">Run the trend query to see the exact SQL and its bound parameters.</pre>}
+          </div>
+        </aside>
       </div>
-
-      <aside className="panel side">
-        <div className="panel-h">
-          <h2 style={{ color: 'var(--accent)' }}>SQL</h2>
-          <Chip tone="faint">{run.kind === 'done' ? `$1…$${run.result.params.length} bound` : 'compiler output'}</Chip>
-          <button className="btn sm ghost collapse" onClick={() => setCollapsed((c) => !c)} aria-label={collapsed ? 'Expand SQL panel' : 'Collapse SQL panel'} aria-pressed={collapsed}>
-            <Icon name="i-chev" />
-          </button>
-        </div>
-        <div className="panel-b">
-          {run.kind === 'done' ? <SqlView sql={run.result.sql} params={run.result.params} /> : <pre className="sqlpre faint">Run the trend query to see the exact SQL and its bound parameters.</pre>}
-        </div>
-      </aside>
-    </div>
+    </>
   );
 }
 

@@ -21,6 +21,7 @@
   --bg:#eef1f7;
   --glow-1:rgba(184,121,15,0.10);
   --glow-2:rgba(15,148,136,0.10);
+  --surface:rgba(10,14,30,0.045);
   --surface-2:rgba(10,14,30,0.075);
   --surface-solid:#e5e9f1;
   --surface-solid-2:#dbe0ea;
@@ -47,7 +48,6 @@
   --shadow-pop:0 1px 0 rgba(255,255,255,0.6) inset, 0 30px 70px -20px rgba(20,22,40,0.35);
 
   /* ---- compatibility aliases onto the shipped token names ---- */
-  --surface:var(--surface-solid);
   --raised:var(--surface-solid-2);
   --line:var(--border);
   --ink-2:var(--ink-dim);
@@ -69,10 +69,10 @@
   --diff-add:rgba(15,143,106,0.16); --diff-del:rgba(200,50,74,0.14);
 
   /* type + radii + motion */
-  --font-display:"Bricolage Grotesque","Manrope","Segoe UI",system-ui,sans-serif;
-  --font-body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --font-display:"Bricolage Grotesque","Segoe UI",sans-serif;
+  --font-body:"Manrope","Segoe UI",sans-serif;
   --font-ui:var(--font-body);
-  --font-mono:"JetBrains Mono","Geist Mono",ui-monospace,"Cascadia Code",Consolas,monospace;
+  --font-mono:"JetBrains Mono",ui-monospace,"Cascadia Code",Consolas,monospace;
   --fs-0: clamp(.78rem,.76rem+.1vw,.85rem); --fs-1: clamp(.9rem,.86rem+.2vw,1rem); --fs-2: clamp(1.05rem,.98rem+.35vw,1.22rem);
   --fs-kpi: clamp(1.6rem,1.3rem+1vw,2.2rem);
   --r-sm:9px; --r-md:14px; --r-lg:20px;
@@ -81,12 +81,68 @@
   color-scheme: light dark;
 }
 
+/* ---- light: re-assert the artifact palette at the vendor's own specificity ----
+   glass-base.css (the vendored OKLCH base) defines its crimson light theme on
+   :root[data-theme="light"] and @media(light) :root:not([data-theme="dark"])
+   — both (0,2,0), which outrank the bare :root above (0,1,0). Dark is already
+   re-asserted at (0,2,0) below; light was not, so without these blocks the
+   explicit / system light theme fell through to the vendor's crimson-on-white.
+   Mirrored exactly like the vendor (and like the dark triad below): an explicit
+   [data-theme="light"] block, and a system :root:not([data-theme="dark"]) block
+   guarded by @media(light) so it never touches the system-dark default.
+   Change one light block, change both. */
+:root[data-theme="light"] {
+  --bg:#eef1f7;
+  --glow-1:rgba(184,121,15,0.10); --glow-2:rgba(15,148,136,0.10);
+  --surface:rgba(10,14,30,0.045); --surface-2:rgba(10,14,30,0.075);
+  --surface-solid:#e5e9f1; --surface-solid-2:#dbe0ea;
+  --border:rgba(10,14,30,0.11); --border-strong:rgba(10,14,30,0.20);
+  --ink:#151926; --ink-dim:#565f74; --ink-faint:#838da3;
+  --accent:#b8790f; --accent-ink:#fffaf0; --accent-soft:rgba(184,121,15,0.14); --accent-2:#7452cf;
+  --teal:#0f8f83; --teal-soft:rgba(15,143,131,0.14);
+  --violet:#7452cf; --rose:#c73a63; --blue:#2564a8;
+  --good:#0f8f6a; --good-soft:rgba(15,143,106,0.14); --bad:#c8324a; --bad-soft:rgba(200,50,74,0.14);
+  --shadow-panel:0 1px 0 rgba(255,255,255,0.55) inset, 0 24px 48px -28px rgba(20,22,40,0.28);
+  --shadow-pop:0 1px 0 rgba(255,255,255,0.6) inset, 0 30px 70px -20px rgba(20,22,40,0.35);
+  --raised:var(--surface-solid-2); --line:var(--border);
+  --ink-2:var(--ink-dim); --ink-3:var(--ink-faint);
+  --ok:var(--good); --warn:var(--accent); --info:var(--blue);
+  --gl-spec:rgba(255,255,255,0.55);
+  --s0:rgba(15,143,131,0.06); --s1:rgba(15,143,131,0.18); --s2:rgba(15,143,131,0.34);
+  --s3:rgba(15,143,131,0.52); --s4:rgba(15,143,131,0.74); --s5:#0f8f83;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:#eef1f7;
+    --glow-1:rgba(184,121,15,0.10); --glow-2:rgba(15,148,136,0.10);
+    --surface:rgba(10,14,30,0.045); --surface-2:rgba(10,14,30,0.075);
+    --surface-solid:#e5e9f1; --surface-solid-2:#dbe0ea;
+    --border:rgba(10,14,30,0.11); --border-strong:rgba(10,14,30,0.20);
+    --ink:#151926; --ink-dim:#565f74; --ink-faint:#838da3;
+    --accent:#b8790f; --accent-ink:#fffaf0; --accent-soft:rgba(184,121,15,0.14); --accent-2:#7452cf;
+    --teal:#0f8f83; --teal-soft:rgba(15,143,131,0.14);
+    --violet:#7452cf; --rose:#c73a63; --blue:#2564a8;
+    --good:#0f8f6a; --good-soft:rgba(15,143,106,0.14); --bad:#c8324a; --bad-soft:rgba(200,50,74,0.14);
+    --shadow-panel:0 1px 0 rgba(255,255,255,0.55) inset, 0 24px 48px -28px rgba(20,22,40,0.28);
+    --shadow-pop:0 1px 0 rgba(255,255,255,0.6) inset, 0 30px 70px -20px rgba(20,22,40,0.35);
+    --raised:var(--surface-solid-2); --line:var(--border);
+    --ink-2:var(--ink-dim); --ink-3:var(--ink-faint);
+    --ok:var(--good); --warn:var(--accent); --info:var(--blue);
+    --gl-spec:rgba(255,255,255,0.55);
+    --s0:rgba(15,143,131,0.06); --s1:rgba(15,143,131,0.18); --s2:rgba(15,143,131,0.34);
+    --s3:rgba(15,143,131,0.52); --s4:rgba(15,143,131,0.74); --s5:#0f8f83;
+    color-scheme: light;
+  }
+}
+
 /* ---- dark: system default (no explicit choice) ---- */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg:#0a0c13;
     --glow-1:rgba(234,179,56,0.13);
     --glow-2:rgba(45,212,191,0.11);
+    --surface:rgba(255,255,255,0.045);
     --surface-2:rgba(255,255,255,0.075);
     --surface-solid:#12141e;
     --surface-solid-2:#181c28;
@@ -155,8 +211,10 @@
 
 /* a11y fallbacks: reduced transparency swaps glass for the solid surface; the manual toggle sets
    data-flat="1" (and the artifact's .no-glass is honoured too). Reduced motion kills animation. */
-@supports not (backdrop-filter: blur(1px)) { .glass { background: var(--surface-solid) } }
-@media (prefers-reduced-transparency: reduce) { .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface-solid) } }
-:root[data-flat="1"] .glass, html.no-glass .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface-solid); }
+@supports not (backdrop-filter: blur(1px)) { .glass, .panel { background: var(--surface-solid) } }
+@media (prefers-reduced-transparency: reduce) { .glass, .panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--surface-solid) } }
+:root[data-flat="1"] .glass, html.no-glass .glass, :root[data-flat="1"] .panel, html.no-glass .panel { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface-solid); }
 :root[data-flat="1"] .glass.raised, html.no-glass .glass.raised { background: var(--surface-solid-2); }
+/* nested panels inside the Settings glass shell stay flat in the flat/no-glass modes too (see app.css) */
+:root[data-flat="1"] .settings-body .panel, html.no-glass .settings-body .panel { background: transparent; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition-duration: 0ms !important } }

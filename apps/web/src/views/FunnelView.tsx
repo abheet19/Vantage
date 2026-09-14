@@ -10,7 +10,7 @@
  * What it must never do: send a step the catalog does not list, or keep a previous result visible while a
  * new run is in flight (the run token clears it).
  */
-import { useCallback, useMemo, useRef, useState, type JSX } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import type { EventCatalog, FunnelResult, FunnelSpec, ProjectRow } from '@vantage/contracts';
 import { ApiError, api } from '../api/client.js';
 import { Chip } from '../components/Chip.js';
@@ -44,7 +44,26 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
   const [range, setRange] = useState(() => catalogRange(catalog));
   const [run, setRun] = useState<Run>({ kind: 'idle' });
   const [collapsed, setCollapsed] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const addRef = useRef<HTMLDivElement>(null);
   const token = useRef(0);
+
+  // Dismiss the add-step catalog popover on any outside click or Escape (matches the prototype).
+  useEffect(() => {
+    if (!addOpen) return;
+    function onDown(e: MouseEvent): void {
+      if (addRef.current && !addRef.current.contains(e.target as Node)) setAddOpen(false);
+    }
+    function onKey(e: KeyboardEvent): void {
+      if (e.key === 'Escape') setAddOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [addOpen]);
 
   const canRun = steps.length >= 2 && steps.every((s) => names.includes(s));
 
@@ -75,47 +94,83 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
       });
   }, [canRun, spec]);
 
-  const setStep = (i: number, event: string) => setSteps((s) => s.map((v, j) => (j === i ? event : v)));
-  const addStep = () => setSteps((s) => (s.length < 10 ? [...s, names[0] ?? ''] : s));
+  const addStep = (event: string) => setSteps((s) => (s.length < 10 ? [...s, event] : s));
   const removeStep = (i: number) => setSteps((s) => (s.length > 2 ? s.filter((_, j) => j !== i) : s));
+  const moveStep = (i: number, dir: -1 | 1) =>
+    setSteps((s) => {
+      const j = i + dir;
+      if (j < 0 || j >= s.length) return s;
+      const next = s.slice();
+      const tmp = next[i]!;
+      next[i] = next[j]!;
+      next[j] = tmp;
+      return next;
+    });
 
   return (
-    <div className={`cols${collapsed ? ' collapsed' : ''}`}>
-      <div className="stack">
-        <div className="panel">
-          <div className="panel-h">
-            <h2>Steps</h2>
+    <>
+      <div className="panel">
+        <div className="panel-h">
+          <h2>Steps</h2>
             <Chip tone="faint">
               {steps.length} of 10
             </Chip>
             <span className="grow" />
-            <button className="btn primary" onClick={execute} disabled={!canRun || run.kind === 'loading'}>
+            <button className="btn primary sm" onClick={execute} disabled={!canRun || run.kind === 'loading'}>
               <Icon name="i-play" />
               {run.kind === 'loading' ? 'Running…' : 'Run funnel'}
             </button>
           </div>
           <div className="steps" style={{ paddingTop: 16 }}>
             {steps.map((event, i) => (
-              <div className="step" key={i}>
+              <div className="step" key={`${event}-${i}`}>
                 <span className="n" style={{ background: `var(--c${(i % 6) + 1})` }}>
                   {i + 1}
                 </span>
-                <select value={event} onChange={(e) => setStep(i, e.target.value)} aria-label={`Step ${i + 1} event`}>
-                  {names.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-                <button className="x" aria-label={`Remove step ${i + 1}`} onClick={() => removeStep(i)} disabled={steps.length <= 2}>
-                  <Icon name="i-x" />
-                </button>
+                <span className="name">{event}</span>
+                <div className="acts">
+                  <button type="button" aria-label={`Move step ${i + 1} up`} onClick={() => moveStep(i, -1)} disabled={i === 0}>
+                    <Icon name="i-up" />
+                  </button>
+                  <button type="button" aria-label={`Move step ${i + 1} down`} onClick={() => moveStep(i, 1)} disabled={i === steps.length - 1}>
+                    <Icon name="i-down" />
+                  </button>
+                  <button type="button" aria-label={`Remove step ${i + 1}`} onClick={() => removeStep(i)} disabled={steps.length <= 2}>
+                    <Icon name="i-x" />
+                  </button>
+                </div>
               </div>
             ))}
-            <button className="addstep" onClick={addStep} disabled={steps.length >= 10 || names.length === 0}>
-              <Icon name="i-plus" />
-              Add step · {names.length} events available
-            </button>
+            <div className="add-step-row" ref={addRef}>
+              <button
+                type="button"
+                className="addstep"
+                aria-haspopup="menu"
+                aria-expanded={addOpen}
+                onClick={() => setAddOpen((o) => !o)}
+                disabled={steps.length >= 10 || names.length === 0}
+              >
+                <Icon name="i-plus" />
+                Add step · {names.length} events available
+              </button>
+              {addOpen && (
+                <div className="add-menu glass" role="menu" aria-label="Add an event step">
+                  {names.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        addStep(n);
+                        setAddOpen(false);
+                      }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div className="builder" style={{ borderTop: '1px solid var(--line)' }}>
             <div className="field">
@@ -162,7 +217,7 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
             </div>
           </div>
         </div>
-
+      <div className={`cols${collapsed ? ' collapsed' : ''}`}>
         <div className="panel">
           <div className="panel-h">
             <h2>Result</h2>
@@ -181,21 +236,20 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
             </div>
           )}
         </div>
+        <aside className="panel side">
+          <div className="panel-h">
+            <h2 style={{ color: 'var(--accent)' }}>SQL</h2>
+            <Chip tone="faint">{run.kind === 'done' ? `$1…$${run.result.params.length} bound` : 'compiler output'}</Chip>
+            <button className="btn sm ghost collapse" onClick={() => setCollapsed((c) => !c)} aria-label={collapsed ? 'Expand SQL panel' : 'Collapse SQL panel'} aria-pressed={collapsed}>
+              <Icon name="i-chev" />
+            </button>
+          </div>
+          <div className="panel-b">
+            {run.kind === 'done' ? <SqlView sql={run.result.sql} params={run.result.params} /> : <pre className="sqlpre faint">Run the funnel to see the exact SQL and its bound parameters.</pre>}
+          </div>
+        </aside>
       </div>
-
-      <aside className="panel side">
-        <div className="panel-h">
-          <h2 style={{ color: 'var(--accent)' }}>SQL</h2>
-          <Chip tone="faint">{run.kind === 'done' ? `$1…$${run.result.params.length} bound` : 'compiler output'}</Chip>
-          <button className="btn sm ghost collapse" onClick={() => setCollapsed((c) => !c)} aria-label={collapsed ? 'Expand SQL panel' : 'Collapse SQL panel'} aria-pressed={collapsed}>
-            <Icon name="i-chev" />
-          </button>
-        </div>
-        <div className="panel-b">
-          {run.kind === 'done' ? <SqlView sql={run.result.sql} params={run.result.params} /> : <pre className="sqlpre faint">Run the funnel to see the exact SQL and its bound parameters.</pre>}
-        </div>
-      </aside>
-    </div>
+    </>
   );
 }
 

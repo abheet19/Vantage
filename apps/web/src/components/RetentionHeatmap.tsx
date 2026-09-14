@@ -12,7 +12,7 @@
  */
 import { useState, type JSX } from 'react';
 import type { RetentionResult } from '@vantage/contracts';
-import { cellAria, cellText, heatLevel } from '../lib/retention.js';
+import { cellAria, cellText, heatFill } from '../lib/retention.js';
 
 /** The naive local bucket start (`2026-08-03T00:00:00`) as a short calendar label; parsed as UTC so the process zone never shifts it. */
 function bucketLabel(bucket: string): string {
@@ -57,10 +57,14 @@ export function RetentionHeatmap({ result }: { result: RetentionResult }): JSX.E
               </th>
               {cohort.cells.map((cell) => {
                 const label = cellAria(bucketLabel(cohort.bucket), result.unit, cell.n, cell);
+                // Hatched in-progress cells keep the dashed treatment (class); settled cells take the
+                // continuous teal fill inline so colour is a smooth function of retention, not six buckets.
+                const fill = cell.in_progress ? undefined : heatFill(cell.pct);
                 return (
                   <td
                     key={cell.n}
-                    className={`l${heatLevel(cell.pct)}${cell.in_progress ? ' prog' : ''}`}
+                    className={cell.in_progress ? 'prog' : undefined}
+                    style={fill}
                     tabIndex={0}
                     aria-label={label}
                     data-testid="heat-cell"
@@ -85,11 +89,17 @@ export function RetentionHeatmap({ result }: { result: RetentionResult }): JSX.E
   );
 }
 
-/** The 0–100 % colour legend and the hatched in-progress swatch (03-UI §4). */
+/** The continuous 0–100 % teal ramp and the hatched in-progress swatch (03-UI §4, glass-redesign match). */
 export function HeatLegend(): JSX.Element {
   return (
     <span className="legend" data-testid="heat-legend">
-      0 %<i style={{ background: 'var(--s0)' }} /><i style={{ background: 'var(--s1)' }} /><i style={{ background: 'var(--s2)' }} /><i style={{ background: 'var(--s3)' }} /><i style={{ background: 'var(--s4)' }} /><i style={{ background: 'var(--s5)' }} />100 %
+      Cold
+      <span className="lg-swatch">
+        {Array.from({ length: 10 }, (_, i) => (
+          <span key={i} style={{ background: `color-mix(in srgb, var(--teal) ${i * 10}%, transparent)` }} />
+        ))}
+      </span>
+      Hot
       <span style={{ marginLeft: 8 }} />
       <i className="hatch" />in progress
     </span>

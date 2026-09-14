@@ -8,7 +8,7 @@ import type { JSX } from 'react';
 
 export type IconName =
   | 'i-ask' | 'i-funnel' | 'i-ret' | 'i-paths' | 'i-trend' | 'i-events' | 'i-hist' | 'i-proj' | 'i-health' | 'i-menu'
-  | 'i-copy' | 'i-play' | 'i-edit' | 'i-chev' | 'i-chevd' | 'i-x' | 'i-check'
+  | 'i-copy' | 'i-play' | 'i-edit' | 'i-chev' | 'i-chevd' | 'i-up' | 'i-down' | 'i-x' | 'i-check'
   | 'i-warn' | 'i-info' | 'i-eye' | 'i-lock' | 'i-rotate' | 'i-sun' | 'i-db' | 'i-plus' | 'i-mcp' | 'i-merge'
   | 'i-search' | 'i-cog' | 'i-clock' | 'i-contrast';
 
@@ -38,6 +38,8 @@ export function IconSprite(): JSX.Element {
       <symbol id="i-edit" viewBox="0 0 16 16"><path d="M10.5 3l2.5 2.5L6 12.5H3.5V10z" /></symbol>
       <symbol id="i-chev" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" /></symbol>
       <symbol id="i-chevd" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" /></symbol>
+      <symbol id="i-up" viewBox="0 0 16 16"><path d="M4 10l4-4 4 4" /></symbol>
+      <symbol id="i-down" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" /></symbol>
       <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" /></symbol>
       <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" /></symbol>
       <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2.5l6 11H2z" /><path d="M8 6.5v3M8 11.5v.1" /></symbol>

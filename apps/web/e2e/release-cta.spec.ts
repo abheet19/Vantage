@@ -62,8 +62,10 @@ test('manual analytics, disclosure, table, refresh, and copy controls work', asy
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
   await page.goto('/#/funnel');
+  // Add step opens the glass catalog popover (glass-redesign); pick an event to append the 4th step.
   await page.getByRole('button', { name: /Add step/ }).click();
-  await expect(page.getByLabel('Step 4 event')).toBeVisible();
+  await page.getByRole('menuitem', { name: 'view_pricing' }).click();
+  await expect(page.getByLabel('Remove step 4')).toBeVisible();
   await page.getByLabel('Remove step 4').click();
   await page.getByRole('button', { name: 'Strict' }).click();
   await expect(page.getByRole('button', { name: 'Strict' })).toHaveAttribute('aria-pressed', 'true');
@@ -104,7 +106,8 @@ test('manual analytics, disclosure, table, refresh, and copy controls work', asy
   await page.getByRole('button', { name: /Of the people who signed up in August/ }).click();
   await expect(page.getByTestId('query-card')).toBeVisible();
   await page.goto('/#/history');
-  const details = page.getByRole('button', { name: /Details for/ }).first();
+  // History is now an accordion of cards (glass-redesign); the row head is the expand control.
+  const details = page.locator('.hist-row-head').first();
   await details.click();
   await expect(details).toHaveAttribute('aria-expanded', 'true');
 

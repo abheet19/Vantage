@@ -4,14 +4,15 @@ import { HeatLegend, RetentionHeatmap } from '../src/components/RetentionHeatmap
 import { retentionResult } from './fixtures.js';
 
 describe('RetentionHeatmap', () => {
-  it('renders one cell per cohort × period, each with an aria label and a global-scale colour class', () => {
+  it('renders one cell per cohort × period, each with an aria label and a continuous global-scale teal fill', () => {
     render(<RetentionHeatmap result={retentionResult(2)} />);
     const cells = screen.getAllByTestId('heat-cell');
     expect(cells).toHaveLength(6); // 2 cohorts × 3 cells
-    // n=0 is 100 % → level 5; n=1 is 40 % → level 2 (floor(0.4×6)); n=2 is 0 % → level 0 (the same scale for every cohort).
-    expect(cells[0]).toHaveClass('l5');
-    expect(cells[1]).toHaveClass('l2');
-    expect(cells[2]).toHaveClass('l0');
+    // The fill is a continuous teal alpha (round(pct×85) %), the SAME scale for every cohort — not six buckets.
+    // n=0 is 100 % → 85 %; n=1 is 40 % → 34 %; n=2 is 0 % → 0 %.
+    expect(cells[0]!.style.background).toBe('color-mix(in srgb, var(--teal) 85%, transparent)');
+    expect(cells[1]!.style.background).toBe('color-mix(in srgb, var(--teal) 34%, transparent)');
+    expect(cells[2]!.style.background).toBe('color-mix(in srgb, var(--teal) 0%, transparent)');
     expect(cells[0]).toHaveAttribute('aria-label', expect.stringContaining('week 0: 100 %'));
   });
 
