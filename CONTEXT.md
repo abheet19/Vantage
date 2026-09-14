@@ -166,3 +166,212 @@ A. A single Docker container (Caddy in front of the Nest API and the built SPA) 
 
 **Q. What are the honest limitations?**
 A. No per-user auth/RBAC/tenant isolation (only shared read/admin bearer tokens); no arbitrary-SQL endpoint by design; no saved dashboards, streaming, alerting, or A/B analysis; local Lighthouse/tests do not establish field Core Web Vitals or internet-scale ingestion/failover. These are deliberate scope cuts, documented in `01-DESIGN.md §7`.
+
+
+## Annotated core code + knowledge graph
+
+> This section is the "read the code on the screen" companion to the sections above. It is grounded entirely in the real source on branch `redesign-glass` under `apps/api/src/` — every file, function, constant, and CTE name below is quoted verbatim from that tree. It exists so this briefing can answer "explain this code", "why is it written this way", and "what's the complexity/trade-off" for the LLM→SQL guardrail: the typed `QuerySpec`, the pure compiler that turns it into parameterized read-only SQL, and the database-enforced read-only role + timeout.
+
+### The guardrail in one sentence
+
+A model never emits SQL. It proposes a `QuerySpec` (a Zod discriminated union); a **pure, side-effect-free compiler** turns that validated spec into a single parameterized `SELECT` in which **every value is a `$n` placeholder and every identifier is a source literal**; the compiler `seal`s the result behind a private brand; and a `QueryRunner` refuses to execute anything that is not sealed, running it as role `vantage_reader` inside a `REPEATABLE READ READ ONLY` transaction with a database-enforced `statement_timeout` of `5s`. Three layers — grammar (L1), pure compilation (L2), runtime role/timeout (L3) — each of which alone bounds the blast radius.
+
+### Knowledge graph — modules, ownership, and flow
+
+```mermaid
+flowchart TD
+    subgraph L1["L1 · Grammar (packages/contracts)"]
+        QS["query-spec.ts<br/>QuerySpec = discriminatedUnion('kind',<br/>[Funnel,Retention,Trend,Paths,Count])<br/>QUERY_LIMITS: 366d, 10 steps, rowCap 10k"]
+    end
+    subgraph L2["L2 · Pure compiler (apps/api/src/domain/compile)"]
+        IDX["index.ts · compile(spec, ctx)<br/>total switch over 5 kinds"]
+        SQLB["sql.ts · the 'Sql' brand<br/>Params.add / fill / assembleStatement"]
+        SCAN["scan.ts · beginScan / personEvents<br/>project_id=$1, range → UTC in SQL"]
+        FILT["filters.ts · allowlisted jsonb operators"]
+        FUN["funnel.ts · compileFunnel<br/>sequential / strict / any as CTEs"]
+        OTH["count · trend · retention · paths"]
+        META["meta.ts · watermark statement"]
+        TYP["types.ts · seal() / isCompiled()<br/>WeakSet identity + deepFreeze brand"]
+    end
+    subgraph L3["L3 · Runtime boundary (apps/api/src/infra)"]
+        QR["query-runner.ts · run() / readOnly()<br/>BEGIN READ ONLY + SET LOCAL timeout"]
+        LIM["limits.ts · RO_STATEMENT_TIMEOUT = '5s'"]
+        DBM["database.module.ts · PG_RO = vantage_reader (max 4)"]
+        ST["self-test.ts · privilege allowlist, refuse boot"]
+    end
+    QS -->|"validated spec"| IDX
+    IDX --> FUN
+    IDX --> OTH
+    FUN --> SCAN
+    FUN --> FILT
+    FUN --> SQLB
+    FUN --> META
+    FUN -->|"seal('funnel', ...)"| TYP
+    TYP -->|"Compiled (branded, frozen)"| QR
+    QR -->|"isCompiled() gate"| QR
+    LIM --> QR
+    LIM --> ST
+    DBM --> QR
+    QR -->|"BEGIN REPEATABLE READ READ ONLY<br/>+ statement_timeout 5s"| PG[("PostgreSQL")]
+    ST -.->|"boot: verify grants == allowlist"| PG
+
+    classDef l1 fill:#1e3a5f,stroke:#4a90d9,color:#e8f0fe;
+    classDef l2 fill:#14532d,stroke:#4ade80,color:#e7fbe9;
+    classDef l3 fill:#5b2333,stroke:#f472b6,color:#fde7ef;
+    classDef db fill:#3b2a5a,stroke:#a78bfa,color:#f1ebff;
+    class QS l1;
+    class IDX,SQLB,SCAN,FILT,FUN,OTH,META,TYP l2;
+    class QR,LIM,DBM,ST l3;
+    class PG db;
+```
+
+**One line per file that matters (all under `apps/api/src/`, contracts under `packages/`):**
+
+- `packages/contracts/src/query-spec.ts` — the grammar: `QuerySpec` Zod discriminated union over `kind`, plus `QUERY_LIMITS` (rangeDays 366, rowCap 10_000, breakdownValues 50, filterValues 50); a spec is fully validated before any compiler sees it.
+- `domain/compile/index.ts` — `compile(spec, ctx)`: a single `switch (spec.kind)` with no `default`, so the five kinds are exhaustively covered and adding a compiler is one line.
+- `domain/compile/sql.ts` — the `Sql` branded string and `Params`; the only two producers of SQL text (`fill` for `{name}` holes, `Params.add` for a `$n`), so a spec value has no path into SQL except as a parameter.
+- `domain/compile/scan.ts` — `beginScan`/`personEvents`: writes `project_id = $1` and the timezone-correct range once; `$1..$4` are always project, tz, from, to.
+- `domain/compile/filters.ts` — `where` clauses as an allowlisted `Record<FilterOp, template>` over jsonb operators; key and value are always parameters.
+- `domain/compile/funnel.ts` — `compileFunnel`: the largest algorithm; builds the funnel as a chain of named CTEs, one per `sequential`/`strict`/`any` order, plus optional breakdown.
+- `domain/compile/{count,trend,retention,paths}.ts` — the other four compilers, same shape.
+- `domain/compile/meta.ts` — `compileMeta`: the watermark statement (`data_until`, merges, adjusted share) compiled for the same project/range and run in the same snapshot.
+- `domain/compile/types.ts` — `seal()`/`isCompiled()`: the private-brand trust boundary that makes `Compiled` unforgeable.
+- `infra/query-runner.ts` — `QueryRunner.run()`/`readOnly()`: the only code that executes query-path SQL; enforces `isCompiled`, `READ ONLY`, and the timeout.
+- `infra/limits.ts` — `RO_STATEMENT_TIMEOUT = '5s'`, the single constant the runner enforces and the self-test checks.
+- `infra/database.module.ts` — two pools/two roles; `PG_RO` is `vantage_reader`, max 4 connections.
+- `infra/self-test.ts` — at boot, reads live grants and refuses to start unless both roles' privileges equal an explicit allowlist (a widened GRANT fails boot exactly like a missing one).
+
+### Excerpt 1 — `sql.ts`: why a spec value can never become SQL text (the parameterization crux)
+
+The whole guardrail rests on one type trick: SQL text is a *branded* string `Sql` that only two functions can produce. TypeScript then makes every template hole demand an `Sql`, so a raw spec value simply does not type-check into a query.
+
+```ts
+// sql.ts
+declare const SQL_BRAND: unique symbol;
+export type Sql = string & { readonly [SQL_BRAND]: true };   // a nominal brand: a plain string is NOT an Sql
+
+export class Params {
+  private readonly values: unknown[] = [];                   // the ordered $1,$2,… values handed to pg
+  private readonly labels: string[] = [];                    // human labels for the "-- $n …" legend only
+  add(value: unknown, label: string): Sql {                  // the ONLY way a value enters a query
+    this.values.push(value);                                 // the value goes into the params array…
+    this.labels.push(label);
+    return `$${this.values.length}` as Sql;                  // …and the SQL only ever sees "$3", never the value
+  }
+  get list(): readonly unknown[] { return this.values; }
+}
+
+const HOLE = /\{(\w+)\}/g;                                   // templates carry {name} holes, never ${…}
+export function fill(template: string, holes: Readonly<Record<string, Sql>> = {}): Sql {
+  const unused = new Set(Object.keys(holes));
+  const out = template.replace(HOLE, (_m, name: string) => {
+    const fragment = holes[name];
+    if (fragment === undefined) throw new Error(`fill: no fragment for {${name}}`); // an unfilled hole is a compiler bug → test sees it
+    unused.delete(name);
+    return fragment;                                         // each fragment is itself an Sql (a $n or another filled template)
+  });
+  if (unused.size > 0) throw new Error(`fill: fragment(s) ${[...unused].join(', ')} not used`); // an unused fragment is also a bug
+  return out as Sql;
+}
+
+export function assembleStatement(ctes: readonly Sql[], select: Sql, p: Params, rowCap: number): Sql {
+  const limit = p.add(rowCap + 1, 'row cap + 1 (the extra row reveals truncation)'); // ask for cap+1 rows: the extra row is how the runner detects truncation
+  const head = ctes.length > 0 ? 'WITH ' + ctes.join(',\n') + '\n' : '';
+  return (head + select + '\nLIMIT ' + limit + '\n' + p.legend()) as Sql;  // one statement, no ';', LIMIT always present
+}
+```
+
+- Line by line: `SQL_BRAND` is a `unique symbol` used only in the type, so `Sql` is *nominal* — `"DROP TABLE" as string` is not assignable to `Sql`. `Params.add` pushes the value onto `values` and returns the placeholder string `$n`; the value never appears in returned text. `fill` substitutes only `{name}` holes and each replacement must itself be an `Sql`, so the recursion bottoms out at either a literal template fragment or a `$n`. Both an *unfilled hole* and an *unused fragment* throw, turning a mis-wired template into a loud test failure rather than a silent malformed query. `assembleStatement` appends exactly one `LIMIT` bound to `rowCap + 1` — the "+1" is the truncation sentinel the runner reads later.
+- A companion lint (`tools/lint-sql.mjs`) forbids `${}` inside any SQL template literal, so the only two doors into SQL are `fill` and `Params.add`.
+- **Interviewer might ask:** *"How do you actually prevent SQL injection here — isn't it just string building?"* Answer: No value is ever concatenated. Every value goes through `Params.add`, which returns a `$n` and stores the value in a parallel array passed to `pg` as bound parameters; identifiers are compile-time string literals in this directory, and the `Sql` brand plus the `lint-sql` rule make "a value became SQL text" a compile-time or CI failure, not a runtime hope. The complexity is O(size of the template) per `fill`, negligible; the trade-off is verbosity (templates with named holes) bought in exchange for a machine-checkable guarantee.
+
+### Excerpt 2 — `funnel.ts`: the core algorithm, a funnel as a readable chain of CTEs
+
+`compileFunnel` is the largest compiler and the best illustration of "compile a typed spec into SQL." It never interpolates a spec value; it emits one CTE per funnel step, each a sentence you can read aloud. The `sequential` order is the default and the clearest:
+
+```ts
+// funnel.ts — the sequential step template and how each step CTE is built
+const FIRST_STEP = `SELECT person_id, min(event_ts) AS t1
+FROM e
+WHERE is_step[1]
+GROUP BY person_id`;                                   // step 1 = each person's FIRST occurrence of step 1 in range
+
+const NEXT_STEP_SEQUENTIAL = `SELECT s{prev}.person_id, s{prev}.t1, min(e.event_ts) AS t{k}
+FROM s{prev}
+JOIN e ON e.person_id = s{prev}.person_id
+WHERE e.is_step[{k}] AND e.event_ts > s{prev}.t{prev} AND e.event_ts <= s{prev}.t1 + {window}::interval
+GROUP BY s{prev}.person_id, s{prev}.t1`;               // step k = earliest step-k STRICTLY after step k-1, still within the window from t1
+
+function sequentialSteps(f: FunnelParts): Sql[] {
+  const ctes = [firstStep("each person's first step 1 in range: the funnel starts there and nowhere else")];
+  for (let k = 2; k <= f.stepCount; k++) {             // one CTE s2..sN, chained on the previous step
+    const why = k === 2 ? 'earliest step 2 strictly after t1, inside the window'
+                        : `earliest step ${k} strictly after t${k - 1}, still inside the window from t1`;
+    ctes.push(cte(`s${k}`, why,                        // cte(name, sentence, body): the sentence rides in the SQL as a comment
+      fill(NEXT_STEP_SEQUENTIAL, { prev: index(k - 1), k: index(k), window: f.window }))); // holes filled only with index()/$n, never a spec value
+  }
+  return ctes;
+}
+```
+
+- Line by line: `is_step` is a boolean array tagged per event in the `e` CTE, so one event can satisfy several steps (a `signup → signup` funnel is legal). `FIRST_STEP` pins first-occurrence semantics: the funnel starts at each person's *earliest* step 1, `min(event_ts) AS t1`. `NEXT_STEP_SEQUENTIAL` uses a strict `>` (a step 2 one millisecond before step 1 does not count) and `<= t1 + window` (the window is inclusive of its last instant). Crucially the only things filling the holes are `index(k)` — which admits a positive integer and nothing else, so `s3`/`t3` derive from a *count*, never a caller-chosen name — and `f.window`, which is a `$n` placeholder (the interval `"14 days"` was pushed via `Params.add` in `compileFunnel`). `cte(name, why, body)` embeds the plain-English sentence as a `-- comment` so the emitted SQL reads like prose in the UI's SQL panel.
+- The `strict` order swaps in a `stream` CTE using `lead() OVER (PARTITION BY person ORDER BY event_ts, event_id)` so "the event right after step k must be step k+1"; `any` order builds `anchors`/`converted` CTEs that ask whether one window of length W contains every step. Ties in `event_ts` break on `event_id` (a UUIDv7 minted at arrival), so a run is deterministic.
+- **Interviewer might ask:** *"Why CTEs instead of one big join, and what's the cost?"* Answer: each CTE is independently testable and readable (the fixture pins boundary rows by name), and Postgres can materialize/inline them; the sequential funnel is N-1 self-joins of the tagged-event CTE `e`, each bounded by the window predicate and the person key, so it scales with events-per-person-in-range, not the whole table. The trade-off vs. a hand-tuned single query is some redundant scanning of `e`; it is accepted because correctness and auditability (a reviewer reading the SQL aloud) are the project's stated goals, and the row cap + 5s timeout bound the worst case regardless.
+
+### Excerpt 3 — `types.ts` + `query-runner.ts`: the unforgeable `Compiled` and the read-only, time-bounded execution
+
+The compiler's output is trusted by exactly one executor. To make "trusted" real, `Compiled` is branded by identity (a private `WeakSet`), not by shape, and frozen deeply; the runner refuses anything else and runs it read-only with a database-enforced timeout.
+
+```ts
+// types.ts — the brand only seal() can mint, checked by identity not shape
+const COMPILED = Symbol('vantage.compiled');
+const SEALED = new WeakSet<object>();                        // every object seal() ever produced; membership is the proof
+
+export function seal(kind, ctx, statement, meta): Compiled {
+  const compiled = {
+    kind,
+    ctx: deepFreeze({ projectId: ctx.projectId, timezone: ctx.timezone, rowCap: ctx.rowCap }),
+    sql: statement.sql,
+    params: deepFreeze([...statement.params]),                // a COPY is frozen, so the caller can't mutate params after sealing
+    meta: deepFreeze({ sql: meta.sql, params: [...meta.params] }),
+  };
+  Object.defineProperty(compiled, COMPILED, { value: true, enumerable: false }); // non-enumerable → a spread {...c} drops it
+  Object.freeze(compiled);
+  SEALED.add(compiled);                                       // identity registered here and nowhere else
+  return compiled as unknown as Compiled;
+}
+
+export function isCompiled(value): value is Compiled {
+  if (typeof value !== 'object' || value === null || !SEALED.has(value)) return false; // identity: a copy is never a member
+  const c = value as Compiled;
+  return Object.isFrozen(c) && Object.isFrozen(c.ctx) && Object.isFrozen(c.params)
+      && Object.isFrozen(c.meta) && Object.isFrozen(c.meta.params);                     // integrity: every part still frozen
+}
+```
+
+```ts
+// query-runner.ts — the only executor of query-path SQL
+async run<T>(c: Compiled, decode): Promise<RunOutcome<T>> {
+  if (!isCompiled(c)) throw new Error('QueryRunner.run: the statement was not produced by compile()'); // V7b: refuse anything unsealed
+  const client = await this.acquire();                        // from PG_RO = vantage_reader, pool max 4, fail-fast when saturated
+  try {
+    await this.begin(client, 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY'); // one snapshot for query + watermark; READ ONLY blocks writes
+    const result = await client.query(c.sql, [...c.params]);  // bound params; c.sql contains only $n placeholders
+    const watermark = await client.query<MetaRow>(c.meta.sql, [...c.meta.params]); // watermark in the SAME snapshot
+    await client.query('COMMIT');
+    return this.succeeded(c, result.rows, watermark.rows[0] ?? null, elapsedSince(started), decode);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    return this.failed(c, err, elapsedSince(started));        // 57014 → timed_out (value null); 42501/25006 → refused_by_database (logged)
+  } finally { client.release(); }
+}
+
+private async begin(client, statement): Promise<void> {
+  await client.query(statement);                              // BEGIN … READ ONLY
+  await client.query('SELECT set_config($1, $2, true)', ['statement_timeout', RO_STATEMENT_TIMEOUT]); // SET LOCAL '5s', as a PARAMETER
+}
+```
+
+- Line by line: `seal` is the single constructor of `Compiled` (a lint rule fails the build if any file outside `domain/compile/` imports `types.ts` or calls `seal(`). It deep-freezes a *copy* of `ctx`, `params`, and `meta`, and stamps a non-enumerable `COMPILED` symbol — so `{ ...c, sql: 'DROP …' }` type-checks (a spread keeps the symbol key in the type) but is **not** a member of `SEALED` and has lost the non-enumerable brand, so `isCompiled` rejects it. `isCompiled` checks *both* identity (`SEALED.has`) and integrity (still frozen), defeating both a hand-built object and a mutated copy. In `run`, the `isCompiled` gate is the first line: an unsealed statement is refused before a connection is touched. `begin` re-asserts the timeout as `set_config(..., is_local=true)` — that is `SET LOCAL` expressed as a *parameterized* statement, so the `'5s'` value is never spliced into SQL text and the bound dies with the transaction.
+- Why re-assert the timeout when the role already has a session default? Because a default is not a cap: the reader could `SET statement_timeout = 0` in its own session, and an operator could `ALTER ROLE`. The `SET LOCAL` inside every transaction (from the single constant `RO_STATEMENT_TIMEOUT`) is what makes the bound enforced, and `self-test.ts` checks the same constant at boot so "the self-test expects what the runner enforces" is a fact, not a coincidence.
+- **Interviewer might ask:** *"A `Compiled` is just `{ sql, params, kind }` structurally — what stops me from forging one and running arbitrary SQL?"* Answer: nothing structural is trusted. The type carries a private symbol only `seal` sets, and the runtime check is `WeakSet` membership (object identity), so a literal or a spread copy is not a `Compiled` no matter its shape; deep-freeze plus the frozen-copy of `params` also blocks mutate-after-seal. Even if that gate were somehow bypassed, the statement runs as `vantage_reader` (SELECT-only grants, verified at boot) inside `READ ONLY` with a 5s server-side timeout — so the worst achievable outcome is a valid-but-wrong read, which is exactly why the exact SQL is always surfaced to the user. Complexity: `isCompiled` is O(1); the trade-off is that the brand lives in one module with a lint rule guarding its callers.
