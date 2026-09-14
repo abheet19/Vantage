@@ -10,6 +10,7 @@
 import { useMemo, useState, type JSX } from 'react';
 import type { EventCatalog, ProjectRow } from '@vantage/contracts';
 import { Chip } from '../components/Chip.js';
+import { EventBars, EVENT_BARS_TOP_N } from '../components/EventBars.js';
 import { Icon } from '../components/Icons.js';
 import { Skeleton, StateCard } from '../components/StateCard.js';
 import { WithProject } from '../components/WithProject.js';
@@ -21,8 +22,20 @@ function Explorer({ project, catalog }: { project: ProjectRow; catalog: EventCat
   const totalEvents = useMemo(() => catalog.events.reduce((n, e) => n + e.count, 0), [catalog]);
   const current = catalog.events.find((e) => e.event === selected) ?? catalog.events[0] ?? null;
 
+  const shown = Math.min(catalog.events.length, EVENT_BARS_TOP_N);
   return (
     <>
+      <div className="panel eventbars-panel">
+        <div className="panel-h">
+          <h2>Top events by volume</h2>
+          <Chip tone="faint">
+            {shown < catalog.events.length ? `top ${shown} of ${catalog.events.length}` : `all ${catalog.events.length} names`}
+          </Chip>
+          <span className="grow" />
+          <span className="small faint">bar length is each event&rsquo;s share of the busiest</span>
+        </div>
+        <EventBars events={catalog.events} total={totalEvents} />
+      </div>
       <div className="cols events-cols">
         <div className="panel">
           <div className="panel-h">

@@ -266,6 +266,9 @@ pre .del { display: block; background: var(--diff-del); margin: 0 -8px; padding:
 .frow .nums b { font-weight: 700; font-size: 15px; color: var(--ink); }
 .frow .nums span { color: var(--ink); font-size: 15px; font-weight: 700; }
 .frow .nums small { display: block; color: var(--ink-faint); font-size: 10px; font-family: var(--font-body); text-transform: uppercase; letter-spacing: .05em; margin-top: 1px; }
+/* top-events bar chart — mirrors .funnel and reuses its .frow row so the two charts read as one system. */
+.eventbars-panel { margin-bottom: 16px; }
+.eventbars { display: flex; flex-direction: column; gap: 12px; padding: 18px; }
 .callout-row { display: flex; gap: 10px; flex-wrap: wrap; }
 .callout { flex: 1; min-width: 150px; border-radius: 12px; padding: 13px 15px; background: var(--good-soft); border: 1px solid color-mix(in srgb, var(--good) 25%, transparent); }
 .callout .cn { font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--good); letter-spacing: -.01em; }
