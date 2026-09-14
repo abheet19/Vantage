@@ -58,7 +58,7 @@ export function WithProject({ children }: { children: (project: ProjectRow) => J
           </button>
         }
       >
-        Create a project and send one batch of events, then Ask, Funnel and Events come to life.
+        Create a project and send one batch of events, then Ask, Funnel and Events have data to work with.
       </StateCard>
     );
   }
