@@ -43,7 +43,9 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
   const [windowUnit, setWindowUnit] = useState<Unit>('days');
   const [range, setRange] = useState(() => catalogRange(catalog));
   const [run, setRun] = useState<Run>({ kind: 'idle' });
-  const [collapsed, setCollapsed] = useState(false);
+  // The SQL panel starts collapsed and re-collapses on each run so the result (chart + timing + trust
+  // chips) owns the space by default; the full trust surface stays one click away behind "View SQL".
+  const [collapsed, setCollapsed] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
   const addRef = useRef<HTMLDivElement>(null);
   const token = useRef(0);
@@ -83,6 +85,7 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
   const execute = useCallback(() => {
     if (!canRun) return;
     const mine = ++token.current;
+    setCollapsed(true);
     setRun({ kind: 'loading' });
     api
       .funnel(spec)
@@ -237,16 +240,25 @@ function Builder({ project, catalog }: { project: ProjectRow; catalog: EventCata
           )}
         </div>
         <aside className="panel side">
-          <div className="panel-h">
-            <h2 style={{ color: 'var(--accent)' }}>SQL</h2>
-            <Chip tone="faint">{run.kind === 'done' ? `$1…$${run.result.params.length} bound` : 'compiler output'}</Chip>
-            <button className="btn sm ghost collapse" onClick={() => setCollapsed((c) => !c)} aria-label={collapsed ? 'Expand SQL panel' : 'Collapse SQL panel'} aria-pressed={collapsed}>
+          {collapsed ? (
+            <button type="button" className="sql-reveal" onClick={() => setCollapsed(false)} aria-label="View SQL" aria-expanded={false}>
               <Icon name="i-chev" />
+              <span className="sql-reveal-label">View SQL</span>
             </button>
-          </div>
-          <div className="panel-b">
-            {run.kind === 'done' ? <SqlView sql={run.result.sql} params={run.result.params} /> : <pre className="sqlpre faint">Run the funnel to see the exact SQL and its bound parameters.</pre>}
-          </div>
+          ) : (
+            <>
+              <div className="panel-h">
+                <h2 style={{ color: 'var(--accent)' }}>SQL</h2>
+                <Chip tone="faint">{run.kind === 'done' ? `$1…$${run.result.params.length} bound` : 'compiler output'}</Chip>
+                <button className="btn sm ghost collapse" onClick={() => setCollapsed(true)} aria-label="Collapse SQL panel" aria-expanded={true}>
+                  <Icon name="i-chev" />
+                </button>
+              </div>
+              <div className="panel-b">
+                {run.kind === 'done' ? <SqlView sql={run.result.sql} params={run.result.params} /> : <pre className="sqlpre faint">Run the funnel to see the exact SQL and its bound parameters.</pre>}
+              </div>
+            </>
+          )}
         </aside>
       </div>
     </>
