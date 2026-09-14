@@ -171,7 +171,7 @@ export function ProjectsView(): JSX.Element {
         </div>
       </div>
 
-      <div className="cols" style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)' }}>
+      <div className="cols cols-even">
         <div className="stack">
           <div className="panel">
             <div className="panel-h">
@@ -344,7 +344,7 @@ export function ProjectsView(): JSX.Element {
           {projects.length === 0 ? (
             <div className="ran-nothing">No projects yet — create one on the left.</div>
           ) : (
-            <table className="data">
+            <table className="data projects-table">
               <thead>
                 <tr>
                   <th>Name</th>
@@ -356,7 +356,12 @@ export function ProjectsView(): JSX.Element {
               <tbody>
                 {projects.map((p) => (
                   <tr key={p.project_id} className={`clickable${current?.project_id === p.project_id ? ' sel' : ''}`} onClick={() => selectProject(p.project_id)}>
-                    <td><button type="button" className="table-action" aria-pressed={current?.project_id === p.project_id}>{p.name}</button></td>
+                    <td>
+                      <button type="button" className="table-action" aria-pressed={current?.project_id === p.project_id}>{p.name}</button>
+                      <span className="event-mobile-meta">
+                        {p.timezone} · {formatDateTime(p.created_at, p.timezone)}
+                      </span>
+                    </td>
                     <td>
                       <code>{p.timezone}</code>
                     </td>

@@ -50,7 +50,7 @@ export function McpView(): JSX.Element {
         </div>
       </div>
 
-      <div className="cols" style={{ gridTemplateColumns: 'minmax(0,480px) minmax(0,1fr)' }}>
+      <div className="cols cols-mcp">
         <div className="stack">
           <div className="panel check" data-testid="mcp-check">
             <span className="ic">

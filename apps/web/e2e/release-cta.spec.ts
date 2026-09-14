@@ -71,8 +71,12 @@ test('manual analytics, disclosure, table, refresh, and copy controls work', asy
   await expect(page.getByRole('button', { name: 'Strict' })).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: 'Run funnel' }).click();
   await expect(page.getByTestId('funnel-bars')).toBeVisible();
+  // The funnel's SQL aside starts collapsed behind "View SQL"; expanding reveals the bound statement, and the
+  // header's collapse control folds it back to the rail.
+  await page.getByRole('button', { name: 'View SQL' }).click();
+  await expect(page.locator('.side').getByTestId('sql-text')).toBeVisible();
   await page.getByRole('button', { name: 'Collapse SQL panel' }).click();
-  await expect(page.getByRole('button', { name: 'Expand SQL panel' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'View SQL' })).toBeVisible();
 
   await page.goto('/#/retention');
   await page.getByRole('button', { name: 'Week' }).click();

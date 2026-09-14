@@ -177,7 +177,8 @@ svg.i { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.6; fill
 .field .in input, .field .in select { flex: 1; min-width: 0; background: transparent; border: 0; color: var(--ink); font-size: 13px; font-family: var(--font-mono); }
 .field .in.err { border-color: color-mix(in srgb, var(--bad) 55%, transparent); }
 .field > select { padding: 9px 11px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface-2); color: var(--ink); font-family: var(--font-mono); font-size: 13px; width: 100%; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23838da3' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
-.seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); gap: 2px; height: auto; overflow: visible; }
+/* flex-wrap: a four-option group (Trend's Hour/Day/Week/Month) wraps inside its builder column instead of overflowing under the neighbouring field, where the last option could not be clicked. */
+.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border); gap: 2px; height: auto; overflow: visible; }
 .seg button { padding: 6px 12px; border-radius: 7px; border: 0; background: transparent; color: var(--ink-dim); font-weight: 600; font-size: 12.5px; }
 .seg button[aria-pressed="true"] { background: var(--surface-solid); color: var(--ink); box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 1px 4px rgba(0,0,0,0.12); }
 .builder { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; padding: 18px; }
@@ -208,7 +209,7 @@ svg.i { width: 16px; height: 16px; stroke: currentColor; stroke-width: 1.6; fill
 
 /* ---------- ask ---------- */
 .ask { border-radius: var(--r-lg); padding: 12px; display: flex; align-items: stretch; gap: 10px; }
-.ask .q { flex: 1; font-family: var(--font-body); font-size: 13.5px; line-height: 1.4; font-weight: 500; color: var(--ink); min-height: 32px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; }
+.ask .q { flex: 1; min-width: 0; font-family: var(--font-body); font-size: 13.5px; line-height: 1.4; font-weight: 500; color: var(--ink); min-height: 32px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 12px 14px; }
 .ask .q::placeholder { color: var(--ink-faint); font-weight: 400; }
 .ask .q:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
 .ask .go { padding: 0 16px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
@@ -280,7 +281,10 @@ pre .del { display: block; background: var(--diff-del); margin: 0 -8px; padding:
 .cols, .analysis-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 360px); gap: 16px; align-items: start; transition: grid-template-columns var(--t-fast) ease; }
 .cols.collapsed, .analysis-layout.sql-collapsed { grid-template-columns: minmax(0, 1fr) 40px; }
 .events-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-@media (max-width: 1100px) { .cols, .cols.collapsed, .analysis-layout, .analysis-layout.sql-collapsed, .events-cols { grid-template-columns: 1fr; } }
+/* Settings panes: two even columns (Projects & ingest) and a 480px setup column beside the transcript (MCP). Classes, not inline styles, so the narrow-viewport rule below can collapse them to one column. */
+.cols.cols-even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cols.cols-mcp { grid-template-columns: minmax(0, 480px) minmax(0, 1fr); }
+@media (max-width: 1100px) { .cols, .cols.collapsed, .cols.cols-even, .cols.cols-mcp, .analysis-layout, .analysis-layout.sql-collapsed, .events-cols { grid-template-columns: minmax(0, 1fr); } }
 .side, .sql-aside { position: sticky; top: 12px; }
 .side .panel-h h2 { color: var(--accent); }
 .side .panel-h button.collapse { margin-left: auto; width: 26px; height: 26px; border-radius: 7px; padding: 0; justify-content: center; }
@@ -401,7 +405,7 @@ table.data code { font-size: 12.5px; color: var(--ink); background: transparent;
 .badge { display: inline-flex; align-items: center; gap: 5px; font: 700 10.5px var(--font-mono); color: var(--good); border: 0; background: var(--good-soft); border-radius: 999px; padding: 3px 8px; height: auto; }
 .badge .i { width: 10px; height: 10px; stroke-width: 2.2; }
 .transcript { display: flex; flex-direction: column; gap: 12px; padding: 18px; }
-.msg { display: grid; grid-template-columns: 28px 1fr; gap: 12px; }
+.msg { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; }
 .msg .av { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font: 700 11px var(--font-body); background: var(--surface-2); color: var(--ink-dim); border: 1px solid var(--border); }
 .msg.claude .av { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
 .msg .who { font-size: 10px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; font-weight: 700; }
@@ -530,5 +534,7 @@ table.heat td:hover, table.heat td:focus-visible { transform: scale(1.08); z-ind
   .side, .sql-aside { position: static; }
   .tool { grid-template-columns: 1fr; }
   .events-table th:nth-child(n + 3), .events-table td:nth-child(n + 3) { display: none; }
+  /* Projects table: timezone and created fold under the name so the Rotate control stays inside the viewport. */
+  .projects-table th:nth-child(2), .projects-table td:nth-child(2), .projects-table th:nth-child(3), .projects-table td:nth-child(3) { display: none; }
   .event-mobile-meta { display: block; margin-top: 5px; color: var(--ink-faint); font-size: 11px; line-height: 1.35; white-space: normal; }
 }
