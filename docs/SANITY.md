@@ -31,7 +31,7 @@ docker build -t vantage-local .
 
 - `docs/VERIFICATION.md`: 855-case local gate, safe public browser sweep, all-CTA/320 px local audit, benchmark, bounded Lighthouse, dependency resolution, and explicit limits.
 - `verification-work/portfolio-release-20260910/VANTAGE_RELEASE_SIGNOFF.md`: exact local/public/live SHA, Fly image/release/machine, and post-deploy smoke.
-- The current public deployment and `origin/redesign-glass` both identify `b0c2b5717ae69e797c8bf84e5b47bf7f3830284f`; `origin/main` is older. A future main release must make `/health.release_sha`, the reviewed commit, and public main equal before claiming that stricter invariant.
+- A release claim requires `/health.release_sha`, the reviewed commit, `origin/main`, and `origin/redesign-glass` to be equal. Record the exact value in the external release evidence; do not copy a mutable release SHA into this checklist and let it go stale.
 
 ## Release sequence
 

@@ -8,9 +8,8 @@
  * spec text a good model would have produced, and answers anything else with one plain sentence — which
  * L1 refuses as `not_json`, exactly as it would refuse a real model's prose. The canned specs describe
  * the fixture month (August 2026, `fixtures/august.json`) and carry no `project`: L1 writes the caller's
- * project in (E26), so the same canned text serves every project. Two of the questions ask for a trend
- * and for paths on purpose: the honest answer in this build is `INVALID_SPEC` "not implemented until S6",
- * and the demo should show that refusal too.
+ * project in (E26), so the same canned text serves every project. Trend and paths are included because
+ * all five shipped grammar kinds should remain demonstrable without a configured model.
  *
  * What it must never do: pattern-match its way to a spec for an unknown question (a near miss is a
  * refusal, not a guess), or emit anything L1 would not validate.
@@ -27,6 +26,10 @@ const STEPS_3 = [{ event: 'signup' }, { event: 'create_project' }, { event: 'inv
 export const DEMO_QUESTIONS: ReadonlyArray<{ question: string; spec: Record<string, unknown> }> = [
   {
     question: 'Of the people who signed up in August, how many created a project within a week, and how many of those invited someone?',
+    spec: { kind: 'funnel', range: DEMO_RANGE, steps: STEPS_3, order: 'sequential', window: { value: 7, unit: 'days' } },
+  },
+  {
+    question: 'What is the funnel from signup to invite in the last 7 days?',
     spec: { kind: 'funnel', range: DEMO_RANGE, steps: STEPS_3, order: 'sequential', window: { value: 7, unit: 'days' } },
   },
   { question: 'How many people signed up in August?', spec: { kind: 'count', range: DEMO_RANGE, event: { event: 'signup' } } },
