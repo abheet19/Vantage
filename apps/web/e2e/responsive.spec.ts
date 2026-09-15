@@ -29,4 +29,18 @@ test('phone layout keeps shell actions usable and stacks both Events panels', as
   await page.getByRole('button', { name: /Of the people who signed up in August/ }).click();
   await expect(page.getByTestId('query-card')).toBeVisible();
   await expect(page.getByTestId('funnel-bars')).toBeVisible();
+
+  await page.goto('/#/settings');
+  const settingsTabs = page.getByRole('navigation', { name: 'Settings sections' }).getByRole('button');
+  await expect(settingsTabs).toHaveCount(3);
+  await settingsTabs.filter({ hasText: 'Health' }).click();
+  await expect(page.getByTestId('health-ok')).toBeVisible();
+  expect(
+    await page.evaluate(() =>
+      Array.from(document.querySelectorAll<HTMLElement>('.settings-nav button, [data-testid="health-ok"] > button')).every((control) => {
+        const { left, right } = control.getBoundingClientRect();
+        return left >= 0 && right <= window.innerWidth;
+      }),
+    ),
+  ).toBe(true);
 });

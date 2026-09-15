@@ -458,10 +458,13 @@ table.heat td:hover, table.heat td:focus-visible { transform: scale(1.08); z-ind
 .settings-shell { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 0; border-radius: var(--r-lg); overflow: hidden; }
 @media (max-width: 760px) { .settings-shell { grid-template-columns: minmax(0, 1fr); } }
 .settings-nav { border-right: 1px solid var(--border); padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; }
-@media (max-width: 760px) { .settings-nav { border-right: 0; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; } }
 .settings-nav button { text-align: left; padding: 9px 11px; border-radius: 9px; border: 0; background: transparent; color: var(--ink-dim); font-weight: 600; font-size: 13px; white-space: nowrap; }
 .settings-nav button:hover { background: var(--surface-2); color: var(--ink); }
 .settings-nav button[aria-current="true"] { background: var(--accent-soft); color: var(--ink); }
+@media (max-width: 760px) {
+  .settings-nav { border-right: 0; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; }
+  .settings-nav button { padding-inline: 9px; }
+}
 .settings-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 18px; }
 .settings-body > .screen { max-width: none; margin: 0; padding: 0; gap: 18px; }
 .settings-body .screen-head { padding: 0; margin: 0; max-width: 640px; }
@@ -474,6 +477,11 @@ table.heat td:hover, table.heat td:focus-visible { transform: scale(1.08); z-ind
 .settings-body .panel.pcard, .settings-body .panel.check, .settings-body .panel[data-testid="try-it"] { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface-2); }
 .settings-body .panel.pcard { padding: 18px; } .settings-body .panel.check { padding: 16px 18px; }
 .settings-body .panel[data-testid="try-it"] > .panel-h { padding: 13px 15px 0; } .settings-body .panel[data-testid="try-it"] > .panel-b { padding: 0 15px 15px; }
+@media (max-width: 420px) {
+  .settings-body .panel.check { display: grid; grid-template-columns: 44px minmax(0, 1fr); }
+  .settings-body .panel.check .grow { display: none; }
+  .settings-body .panel.check > .btn { grid-column: 2; justify-self: start; }
+}
 
 /* ---------- command palette ---------- */
 .cmdk-scrim { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh; background: rgba(6,8,14,0.42); }

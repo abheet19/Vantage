@@ -1,10 +1,12 @@
-# Vantage — verification companion, 2026-09-10
+# Vantage — verification companion, updated 2026-09-15
 
 Auditable product analytics: ingest retry-safe events, inspect funnels/retention/trends/paths, and review the exact typed specification and read-only SQL behind each result.
 
 The Study Pack's release ledger records the exact pushed SHA, Fly image, health check, and post-deploy browser evidence. This source companion records reproducible checks without treating an uncommitted checkout as a release.
 
-**Configured release check:** `npm run check` passed on Windows/Node 22 on 2026-09-10. It ran 834 distinct cases: 680 API/contracts/integration, 139 web component/helper, and 15 Playwright browser workflows against the built API and disposable PostgreSQL fixture. All configured coverage gates passed: API/domain/contracts 96.13% statements and 91.17% branches overall; web 93.82% statements and 87.86% branches overall, plus every stricter per-area floor. `npm run docs:check` passed all 11 checked documents. Count runner-reported cases rather than grepped declarations or property iterations.
+**Current candidate check:** `npm run check` passed on Windows/Node 22 on 2026-09-15. It ran 855 distinct cases: 680 API/contracts/integration, 160 web component/helper, and 15 Playwright browser workflows against the built API and disposable PostgreSQL fixture. All configured coverage gates passed: API/domain/contracts 96.13% statements and 90.95% branches overall; web 92.87% statements and 86.41% branches overall, plus every stricter per-area floor. `npm run docs:check` passed all 12 checked documents. Count runner-reported cases rather than grepped declarations or property iterations.
+
+**Live continuation:** local HEAD and `origin/redesign-glass` were `b0c2b5717ae69e797c8bf84e5b47bf7f3830284f`; live `/health.release_sha` returned the same revision, while `origin/main` remained `db3023a6be02b05417403437ac3eab9f0866962b`. Twelve safe public Playwright workflows passed, covering safe and hostile Ask, edit/re-run, all manual builders, every route and global control, MCP copy/setup, health, empty/error/loading/refusal states, and the 320 px shell. Two unauthenticated admin probes returned 401 `INVALID_ADMIN_TOKEN`. The four-viewport audit passed tablet, laptop and wide on the live bytes, but reproduced two clipped controls at 320 px: the Settings `Health` tab and Health `Re-check` button. The local candidate fixes both; its focused responsive test passes. That fix is not live until a later exact-SHA deployment proves it.
 
 **Production dependency audit:** `npm audit --omit=dev` reports zero vulnerabilities. Nest 12.0.1 pins Multer 2.2.0, so the root lockfile override resolves its shipped transitive dependency to patched Multer 2.3.0; Vantage exposes no multipart/upload controller, the full API/web/browser gate passed with the override, and CI now fails on any known high/critical production advisory.
 

@@ -1,6 +1,6 @@
 # Vantage — sanity, acceptance, and release guide
 
-> Snapshot: 10 September 2026 IST. Run this against disposable or synthetic data. Save the branch, commit, complete dirty-path list, command, exit code, environment, and artifact hashes with every result.
+> Snapshot updated 15 September 2026 IST. Run this against disposable or synthetic data. Save the branch, commit, complete dirty-path list, command, exit code, environment, and artifact hashes with every result.
 
 ## Before running
 
@@ -29,9 +29,9 @@ docker build -t vantage-local .
 
 ## Retained evidence for the current release
 
-- `docs/VERIFICATION.md`: 832-case local gate, all-CTA/320 px browser audit, benchmark, bounded Lighthouse, dependency resolution, and explicit limits.
+- `docs/VERIFICATION.md`: 855-case local gate, safe public browser sweep, all-CTA/320 px local audit, benchmark, bounded Lighthouse, dependency resolution, and explicit limits.
 - `verification-work/portfolio-release-20260910/VANTAGE_RELEASE_SIGNOFF.md`: exact local/public/live SHA, Fly image/release/machine, and post-deploy smoke.
-- `/health.release_sha` must equal `git rev-parse HEAD` and `git ls-remote origin main refs/heads/main`; a 200 response without this equality is not release proof.
+- The current public deployment and `origin/redesign-glass` both identify `b0c2b5717ae69e797c8bf84e5b47bf7f3830284f`; `origin/main` is older. A future main release must make `/health.release_sha`, the reviewed commit, and public main equal before claiming that stricter invariant.
 
 ## Release sequence
 
